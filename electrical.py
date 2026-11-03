@@ -1,13 +1,18 @@
-def _validate_positive(value, name):
+def _validate_number(value, name, allow_zero=False):
     if not isinstance(value, (int, float)):
         raise TypeError(f"{name} ต้องเป็นตัวเลข")
-    if value <= 0:
+    minimum_ok = value >= 0 if allow_zero else value > 0
+    if not minimum_ok:
         raise ValueError(f"{name} ต้องมากกว่า 0")
+
+
+def _validate_positive(value, name):
+    _validate_number(value, name)
 
 
 def analyze_dc(voltage_v, resistance_ohm):
     """คำนวณกระแสและกำลังของวงจรตัวต้านทานเพียงตัวเดียว"""
-    _validate_positive(voltage_v, "แรงดัน")
+    _validate_number(voltage_v, "แรงดัน", allow_zero=True)
     _validate_positive(resistance_ohm, "ความต้านทาน")
 
     current_a = voltage_v / resistance_ohm
