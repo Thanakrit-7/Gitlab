@@ -1,0 +1,101 @@
+:root {
+  color-scheme: light;
+  --ink: #1f2933;
+  --muted: #5f6b7a;
+  --line: #d9e2ec;
+  --accent: #0b6e4f;
+  --accent-ink: #ffffff;
+  --error: #b42318;
+  --warn-bg: #fff4d6;
+  --warn-line: #e0a800;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 32px 16px;
+  background: #f5f7fa;
+  color: var(--ink);
+  font-family: "Segoe UI", "Noto Sans Thai", Tahoma, sans-serif;
+  line-height: 1.55;
+}
+
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.06);
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  margin: 0 0 24px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.field input {
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.field input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.field-error {
+  color: var(--error);
+  font-size: 0.85rem;
+}
+
+button {
+  margin-top: 20px;
+  padding: 11px 26px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 20px;
+  }
+}

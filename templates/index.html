@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="post" action="/calculate" class="bias-form">
+  <div class="grid">
+    {% for name, label, unit in [
+      ("vcc", "VCC", "V"),
+      ("r1", "R1", "Ω"),
+      ("r2", "R2", "Ω"),
+      ("rc", "RC", "Ω"),
+      ("re", "RE", "Ω"),
+      ("beta", "β", ""),
+      ("vbe", "VBE", "V")
+    ] %}
+    <label class="field">
+      <span>{{ label }}{% if unit %} ({{ unit }}){% endif %}</span>
+      <input type="number" step="any" name="{{ name }}" value="{{ form[name] }}">
+      {% if errors[name] %}<span class="field-error">{{ errors[name] }}</span>{% endif %}
+    </label>
+    {% endfor %}
+  </div>
+  <button type="submit">คำนวณ</button>
+</form>
+{% endblock %}
