@@ -1,0 +1,152 @@
+"""Render the BJT common-emitter bias circuit as an inline SVG.
+
+Pure functions only: no I/O, no globals. The SVG is built entirely from the
+dict produced by ``bjt.analyze`` so the picture can never disagree with the
+numbers shown in the result table.
+"""
+
+import html
+
+ACCENT = "#0b6e4f"
+INK = "#1f2933"
+MUTED = "#5f6b7a"
+WIRE = "#1f2933"
+
+
+def _esc(text):
+    return html.escape(str(text), quote=True)
+
+
+def _ohms(value):
+    return f"{value:.0f}" if float(value).is_integer() else f"{value:g}"
+
+
+def format_current(amps):
+    if amps == 0:
+        return "0.000"
+    if amps < 1e-3:
+        return f"{amps * 1e6:.3f} µA"
+    return f"{amps * 1000:.3f} mA"
+
+
+def build_circuit_svg(result):
+    inputs = result["inputs"]
+    exact = result["exact"]
+
+    vcc = f"{inputs['vcc']:.1f}"
+    beta = f"{inputs['beta']:.0f}"
+    vbe = f"{inputs['vbe']:.1f}"
+
+    vth = f"{exact['vth_v']:.3f} V"
+    rth = f"{exact['rth_ohm']:.1f} Ω"
+    vb = f"{exact['vb_v']:.3f} V"
+    ve = f"{exact['ve_v']:.3f} V"
+    vc = f"{exact['vc_v']:.3f} V"
+    vce = f"{exact['vce_v']:.3f} V"
+
+    ib = format_current(exact["ib_a"])
+    ic = format_current(exact["ic_a"])
+    ie = format_current(exact["ie_a"])
+
+    zigzag_r1 = "120,48 111,62 129,76 111,90 129,104 111,118 129,132 120,146"
+    zigzag_r2 = "120,246 111,258 129,270 111,282 129,294 111,306 129,318 120,330"
+    zigzag_rc = "340,48 331,58 349,68 331,78 349,88 331,98 340,106"
+    zigzag_re = "340,272 331,282 349,292 331,302 349,312 331,322 340,330"
+
+    parts = [
+        f'<svg class="circuit-svg" viewBox="0 0 480 400" '
+        f'xmlns="http://www.w3.org/2000/svg" role="img" '
+        f'aria-label="วงจร Voltage Divider Bias พร้อมค่าที่คำนวณได้">',
+        f'<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" '
+        f'markerWidth="7" markerHeight="7" orient="auto">'
+        f'<path d="M0,0 L10,5 L0,10 z" fill="{ACCENT}"/>'
+        f'</marker></defs>',
+
+        # VCC rail
+        f'<line x1="40" y1="30" x2="440" y2="30" stroke="{WIRE}" stroke-width="2"/>',
+        f'<text x="44" y="20" font-size="12" fill="{MUTED}">VCC = {_esc(vcc)} V</text>',
+
+        # R1 branch
+        f'<line x1="120" y1="30" x2="120" y2="48" stroke="{WIRE}" stroke-width="2"/>',
+        f'<polyline points="{zigzag_r1}" fill="none" stroke="{WIRE}" stroke-width="2" '
+        f'stroke-linejoin="round"/>',
+        f'<line x1="120" y1="146" x2="120" y2="228" stroke="{WIRE}" stroke-width="2"/>',
+        f'<text x="100" y="100" font-size="11.5" fill="{INK}" text-anchor="end">'
+        f'R1 = {_esc(_ohms(inputs["r1"]))} Ω</text>',
+
+        # R2 branch to ground
+        f'<line x1="120" y1="228" x2="120" y2="246" stroke="{WIRE}" stroke-width="2"/>',
+        f'<polyline points="{zigzag_r2}" fill="none" stroke="{WIRE}" stroke-width="2" '
+        f'stroke-linejoin="round"/>',
+        f'<line x1="120" y1="330" x2="120" y2="356" stroke="{WIRE}" stroke-width="2"/>',
+        f'<text x="100" y="295" font-size="11.5" fill="{INK}" text-anchor="end">'
+        f'R2 = {_esc(_ohms(inputs["r2"]))} Ω</text>',
+
+        # Base wire from divider node to transistor base
+        f'<circle cx="120" cy="200" r="3.5" fill="{WIRE}"/>',
+        f'<line x1="120" y1="200" x2="288" y2="200" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M120,200 L286,200" fill="none" stroke="{ACCENT}" '
+        f'stroke-width="1.6" marker-end="url(#arr)"/>',
+        f'<text x="130" y="168" font-size="11.5" fill="{MUTED}">VTH = {_esc(vth)}</text>',
+        f'<text x="130" y="182" font-size="11.5" fill="{MUTED}">RTH = {_esc(rth)}</text>',
+        f'<text x="130" y="216" font-size="11.5" fill="{INK}">VB = {_esc(vb)}</text>',
+        f'<text x="130" y="230" font-size="11.5" fill="{ACCENT}">IB = {_esc(ib)}</text>',
+
+        # RC branch
+        f'<circle cx="340" cy="30" r="3.5" fill="{WIRE}"/>',
+        f'<line x1="340" y1="30" x2="340" y2="48" stroke="{WIRE}" stroke-width="2"/>',
+        f'<polyline points="{zigzag_rc}" fill="none" stroke="{WIRE}" stroke-width="2" '
+        f'stroke-linejoin="round"/>',
+        f'<line x1="340" y1="106" x2="340" y2="138" stroke="{WIRE}" stroke-width="2"/>',
+        f'<text x="356" y="72" font-size="11.5" fill="{INK}">'
+        f'RC = {_esc(_ohms(inputs["rc"]))} Ω</text>',
+
+        # NPN transistor: bar + collector/emitter leads
+        f'<circle cx="340" cy="138" r="3.5" fill="{WIRE}"/>',
+        f'<text x="332" y="128" font-size="11.5" fill="{INK}" text-anchor="end">'
+        f'VC = {_esc(vc)}</text>',
+        f'<path d="M340,138 L294,178" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M340,138 L296,176" fill="none" stroke="{ACCENT}" '
+        f'stroke-width="1.6" marker-end="url(#arr)"/>',
+        f'<text x="252" y="146" font-size="11.5" fill="{ACCENT}" text-anchor="end">'
+        f'IC = {_esc(ic)}</text>',
+        f'<line x1="290" y1="174" x2="290" y2="226" stroke="{WIRE}" stroke-width="5"/>',
+        f'<line x1="286" y1="200" x2="290" y2="200" stroke="{WIRE}" stroke-width="2"/>',
+
+        # Emitter lead with arrow out + RE branch
+        f'<path d="M290,222 L340,262" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M290,222 L330,254" fill="none" stroke="{ACCENT}" '
+        f'stroke-width="1.6" marker-end="url(#arr)"/>',
+        f'<circle cx="340" cy="262" r="3.5" fill="{WIRE}"/>',
+        f'<text x="348" y="256" font-size="11.5" fill="{INK}">VE = {_esc(ve)}</text>',
+        f'<text x="348" y="242" font-size="11.5" fill="{ACCENT}">IE = {_esc(ie)}</text>',
+        f'<line x1="340" y1="262" x2="340" y2="272" stroke="{WIRE}" stroke-width="2"/>',
+        f'<polyline points="{zigzag_re}" fill="none" stroke="{WIRE}" stroke-width="2" '
+        f'stroke-linejoin="round"/>',
+        f'<line x1="340" y1="330" x2="340" y2="356" stroke="{WIRE}" stroke-width="2"/>',
+        f'<text x="356" y="308" font-size="11.5" fill="{INK}">'
+        f'RE = {_esc(_ohms(inputs["re"]))} Ω</text>',
+
+        # Beta / VBE annotations under the transistor
+        f'<text x="290" y="248" font-size="13" font-weight="700" fill="{INK}" '
+        f'text-anchor="middle">β = {_esc(beta)}</text>',
+        f'<text x="290" y="264" font-size="10.5" fill="{MUTED}" '
+        f'text-anchor="middle">VBE = {_esc(vbe)} V</text>',
+
+        # VCE emphasis on the right side
+        f'<rect x="352" y="186" width="118" height="24" rx="12" '
+        f'fill="#e3f4ec" stroke="{ACCENT}" stroke-width="1.2"/>',
+        f'<text x="411" y="202" font-size="12" font-weight="700" fill="{ACCENT}" '
+        f'text-anchor="middle">VCE = {_esc(vce)}</text>',
+
+        # Ground rail + symbol
+        f'<line x1="40" y1="356" x2="440" y2="356" stroke="{WIRE}" stroke-width="2"/>',
+        f'<line x1="250" y1="356" x2="250" y2="366" stroke="{WIRE}" stroke-width="2"/>',
+        f'<line x1="228" y1="366" x2="272" y2="366" stroke="{WIRE}" stroke-width="2"/>',
+        f'<line x1="236" y1="372" x2="264" y2="372" stroke="{WIRE}" stroke-width="2"/>',
+        f'<line x1="244" y1="378" x2="256" y2="378" stroke="{WIRE}" stroke-width="2"/>',
+        f'<text x="284" y="374" font-size="11.5" fill="{MUTED}">GND</text>',
+
+        "</svg>",
+    ]
+    return "".join(parts)
