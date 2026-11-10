@@ -70,10 +70,12 @@ class TestBuildCircuitSvg(unittest.TestCase):
         svg = build_circuit_svg(result)
         self.assertIn("β = 99.6", svg)
 
-    def test_beta_is_drawn_inside_a_circle(self):
+    def test_npn_transistor_symbol_is_drawn(self):
         svg = build_circuit_svg(analyze(**BASE))
-        self.assertIn("<circle", svg)
-        self.assertIn(">β<", svg)
+        self.assertIn("<circle", svg)               # enclosing circle
+        self.assertIn('stroke-width="5"', svg)      # vertical bar
+        self.assertIn("NPN", svg)                   # Q1 NPN label
+        self.assertIn("β = 100.0", svg)
 
     def test_vce_dimension_line_present(self):
         svg = build_circuit_svg(analyze(**BASE))

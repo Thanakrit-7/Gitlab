@@ -84,8 +84,8 @@ def build_circuit_svg(result):
 
         # Base wire from divider node to transistor base
         f'<circle cx="120" cy="200" r="3.5" fill="{WIRE}"/>',
-        f'<line x1="120" y1="200" x2="266" y2="200" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M120,200 L276,200" fill="none" stroke="{ACCENT}" '
+        f'<line x1="120" y1="200" x2="284" y2="200" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M120,200 L280,200" fill="none" stroke="{ACCENT}" '
         f'stroke-width="1.6" marker-end="url(#arr)"/>',
         f'<text x="130" y="168" font-size="11.5" fill="{MUTED}">VTH = {_esc(vth)}</text>',
         f'<text x="130" y="182" font-size="11.5" fill="{MUTED}">RTH = {_esc(rth)}</text>',
@@ -101,24 +101,27 @@ def build_circuit_svg(result):
         f'<text x="356" y="72" font-size="11.5" fill="{INK}">'
         f'RC = {_esc(_ohms(inputs["rc"]))} Ω</text>',
 
-        # NPN transistor: enclosing circle + bar (β symbol inside)
+        # NPN transistor: enclosing circle + vertical bar + 45-degree leads
+        f'<circle cx="284" cy="200" r="26" fill="#fcfdfe" stroke="{WIRE}" '
+        f'stroke-width="2"/>',
+        f'<line x1="284" y1="180" x2="284" y2="220" stroke="{WIRE}" stroke-width="5"/>',
+        f'<path d="M340,138 L284,182" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M340,138 L286,184" fill="none" stroke="{ACCENT}" '
+        f'stroke-width="1.6" marker-end="url(#arr)"/>',
+        f'<path d="M284,218 L340,262" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M284,218 L328,250" fill="none" stroke="{ACCENT}" '
+        f'stroke-width="1.6" marker-end="url(#arr)"/>',
+        f'<text x="318" y="192" font-size="12" font-weight="700" fill="{INK}">'
+        f'Q1 NPN</text>',
+        f'<text x="318" y="207" font-size="10.5" fill="{MUTED}">'
+        f'(β = {_esc(beta)})</text>',
         f'<circle cx="340" cy="138" r="3.5" fill="{WIRE}"/>',
         f'<text x="332" y="128" font-size="11.5" fill="{INK}" text-anchor="end">'
         f'VC = {_esc(vc)}</text>',
-        f'<path d="M340,138 L306,182" fill="none" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M340,138 L308,180" fill="none" stroke="{ACCENT}" '
-        f'stroke-width="1.6" marker-end="url(#arr)"/>',
         f'<text x="252" y="146" font-size="11.5" fill="{ACCENT}" text-anchor="end">'
         f'IC = {_esc(ic)}</text>',
-        f'<circle cx="290" cy="200" r="24" fill="#fcfdfe" stroke="{WIRE}" '
-        f'stroke-width="2"/>',
-        f'<text x="290" y="207" font-size="19" font-weight="700" fill="{INK}" '
-        f'text-anchor="middle">β</text>',
 
-        # Emitter lead with arrow out + RE branch
-        f'<path d="M305,219 L340,262" fill="none" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M305,219 L330,251" fill="none" stroke="{ACCENT}" '
-        f'stroke-width="1.6" marker-end="url(#arr)"/>',
+        # Emitter node + RE branch
         f'<circle cx="340" cy="262" r="3.5" fill="{WIRE}"/>',
         f'<text x="348" y="256" font-size="11.5" fill="{INK}">VE = {_esc(ve)}</text>',
         f'<text x="348" y="242" font-size="11.5" fill="{ACCENT}">IE = {_esc(ie)}</text>',
