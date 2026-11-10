@@ -41,3 +41,32 @@ def validate_inputs(vcc, r1, r2, rc, re, beta, vbe):
 
     if not (0 < vbe < vcc):
         raise InputError("VBE", "VBE ต้องมากกว่า 0 และน้อยกว่า VCC")
+
+
+def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
+    validate_inputs(vcc, r1, r2, rc, re, beta, vbe)
+
+    vth_v = vcc * r2 / (r1 + r2)
+    rth_ohm = r1 * r2 / (r1 + r2)
+    ib_a = (vth_v - vbe) / (rth_ohm + (1 + beta) * re)
+    ic_a = beta * ib_a
+    ie_a = (1 + beta) * ib_a
+    ve_v = ie_a * re
+    vb_v = ve_v + vbe
+    vc_v = vcc - ic_a * rc
+    vce_v = vc_v - ve_v
+
+    return {
+        "vth_v": vth_v,
+        "rth_ohm": rth_ohm,
+        "ib_a": ib_a,
+        "ic_a": ic_a,
+        "ie_a": ie_a,
+        "vb_v": vb_v,
+        "ve_v": ve_v,
+        "vc_v": vc_v,
+        "vce_v": vce_v,
+        "region": "active",
+        "warnings": [],
+        "ic_sat_a": None,
+    }
