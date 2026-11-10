@@ -49,6 +49,12 @@ class TestValidation(unittest.TestCase):
     def test_rejects_infinity(self):
         self.assert_field("R2", r2=float("inf"))
 
+    def test_rejects_huge_resistor(self):
+        self.assert_field("R1", r1=1e12)
+
+    def test_rejects_huge_beta(self):
+        self.assert_field("beta", beta=1e9)
+
 
 class TestExactOperatingPoint(unittest.TestCase):
     def test_textbook_example(self):

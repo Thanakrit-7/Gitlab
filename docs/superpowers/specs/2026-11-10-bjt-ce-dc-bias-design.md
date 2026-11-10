@@ -140,11 +140,14 @@ subclass) so the route can attach the message to the right form field.
 
 | Field | Rule |
 |-------|------|
-| `VCC` | number, `> 0` |
-| `R1, R2, RC, RE` | number, `> 0` |
-| `beta` | number, `>= 1` |
+| `VCC` | number, `0 < VCC <= 10000` V |
+| `R1, R2, RC, RE` | number, `0 < R <= 1000000000` Ω |
+| `beta` | number, `1 <= beta <= 1000000` |
 | `VBE` | number, `0 < VBE < VCC` |
 | any field | required, parseable as a float (accepts `4.7`, `4700`, `1e3`) |
+
+The upper bounds keep every intermediate product finite, so a valid input
+can never produce a `nan` or infinite result.
 
 `VTH <= VBE` is not a validation error; it is a valid cutoff condition and is
 reported as a region warning.

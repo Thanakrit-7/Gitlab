@@ -2,6 +2,10 @@ import math
 
 VCE_SAT = 0.2
 
+MAX_VOLTAGE = 10_000.0
+MAX_RESISTANCE = 1_000_000_000.0
+MAX_BETA = 1_000_000.0
+
 
 class InputError(ValueError):
     """Invalid circuit input, carrying the form field it belongs to."""
@@ -28,18 +32,23 @@ def validate_inputs(vcc, r1, r2, rc, re, beta, vbe):
     beta = _finite_number(beta, "beta")
     vbe = _finite_number(vbe, "VBE")
 
-    for field, value in (
-        ("VCC", vcc),
-        ("R1", r1),
-        ("R2", r2),
-        ("RC", rc),
-        ("RE", re),
-    ):
+    checks = (
+        ("VCC", vcc, MAX_VOLTAGE, "V"),
+        ("R1", r1, MAX_RESISTANCE, "Ω"),
+        ("R2", r2, MAX_RESISTANCE, "Ω"),
+        ("RC", rc, MAX_RESISTANCE, "Ω"),
+        ("RE", re, MAX_RESISTANCE, "Ω"),
+    )
+    for field, value, limit, unit in checks:
         if value <= 0:
             raise InputError(field, f"{field} ต้องมากกว่า 0")
+        if value > limit:
+            raise InputError(field, f"{field} ต้องไม่เกิน {limit:,.0f} {unit}")
 
     if beta < 1:
         raise InputError("beta", "beta ต้องมีค่าอย่างน้อย 1")
+    if beta > MAX_BETA:
+        raise InputError("beta", f"beta ต้องไม่เกิน {MAX_BETA:,.0f}")
 
     if not (0 < vbe < vcc):
         raise InputError("VBE", "VBE ต้องมากกว่า 0 และน้อยกว่า VCC")

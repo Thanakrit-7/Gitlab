@@ -37,7 +37,7 @@ def create_app():
             try:
                 result = analyze(**values)
             except InputError as exc:
-                errors[exc.field] = str(exc)
+                errors[exc.field.lower()] = str(exc)
         status = 400 if errors else 200
         return (
             render_template("index.html", form=raw, result=result, errors=errors),

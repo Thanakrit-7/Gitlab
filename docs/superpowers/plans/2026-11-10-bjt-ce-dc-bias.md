@@ -684,7 +684,8 @@ Expected: at least `test_non_numeric_returns_400` fails with `500`.
 
 In `POST /calculate`, collect `errors: dict[str, str]`:
 - empty or unparsable value → `"กรุณากรอกตัวเลข"` for that field;
-- `InputError` from `analyze` → `errors[exc.field] = str(exc)`;
+- `InputError` from `analyze` → `errors[exc.field.lower()] = str(exc)`
+  (the engineering module names fields in uppercase, the form in lowercase);
 - if any error, re-render `index.html` with `form=raw`, `result=None`,
   `errors=errors`, status `400`.
 

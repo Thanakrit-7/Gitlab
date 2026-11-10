@@ -71,6 +71,38 @@ class TestErrors(unittest.TestCase):
         response = self.post(vcc="nan")
         self.assertEqual(response.status_code, 400)
 
+    def test_non_beta_field_error_is_shown(self):
+        response = self.post(vcc="0")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("มากกว่า 0", response.get_data(as_text=True))
+
+    def test_vbe_error_is_shown(self):
+        response = self.post(vbe="12")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("น้อยกว่า VCC", response.get_data(as_text=True))
+
+    def test_nan_shows_a_field_message(self):
+        response = self.post(vcc="nan")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("ค่าจำกัด", response.get_data(as_text=True))
+
+    def test_saturation_warning_is_shown(self):
+        response = self.post(rc="47000")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Saturation", html)
+        self.assertIn("0.246", html)
+
+    def test_cutoff_warning_is_shown(self):
+        response = self.post(r2="1000")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Cutoff", response.get_data(as_text=True))
+
+    def test_huge_value_shows_a_message(self):
+        response = self.post(r1="1e12")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("ไม่เกิน", response.get_data(as_text=True))
+
 
 if __name__ == "__main__":
     unittest.main()
