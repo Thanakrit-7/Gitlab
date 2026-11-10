@@ -104,5 +104,25 @@ class TestErrors(unittest.TestCase):
         self.assertIn("ไม่เกิน", response.get_data(as_text=True))
 
 
+class TestCircuitDiagram(unittest.TestCase):
+    def setUp(self):
+        self.client = create_app().test_client()
+
+    def test_result_page_embeds_svg(self):
+        response = self.client.post("/calculate", data={
+            "vcc": "12", "r1": "47000", "r2": "10000", "rc": "4700",
+            "re": "1000", "beta": "100", "vbe": "0.7"})
+        html = response.get_data(as_text=True)
+        self.assertIn("circuit-svg", html)
+        self.assertIn("<svg", html)
+        self.assertIn("4.655", html)
+
+    def test_invalid_submission_has_no_svg(self):
+        response = self.client.post("/calculate", data={
+            "vcc": "12", "r1": "47000", "r2": "10000", "rc": "4700",
+            "re": "1000", "beta": "abc", "vbe": "0.7"})
+        self.assertNotIn("circuit-svg", response.get_data(as_text=True))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -78,6 +78,10 @@
     {% if result.approx_near_saturation %}
       <p class="note">หมายเหตุ: วิธีประมาณให้ VCE ต่ำกว่า VCE(sat) แล้ว แม้ผลแม่นยำยังอยู่ในย่าน Active</p>
     {% endif %}
+
+    {% if circuit_svg %}
+      {% include "_circuit.html" %}
+    {% endif %}
   </section>
 {% endif %}
 {% endblock %}

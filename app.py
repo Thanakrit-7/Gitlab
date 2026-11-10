@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 
 from bjt import InputError, analyze
+from circuit_svg import build_circuit_svg
 
 DEFAULTS = {
     "vcc": "12",
@@ -33,14 +34,17 @@ def create_app():
             except ValueError:
                 errors[name] = "กรุณากรอกตัวเลข"
         result = None
+        circuit_svg = None
         if not errors:
             try:
                 result = analyze(**values)
+                circuit_svg = build_circuit_svg(result)
             except InputError as exc:
                 errors[exc.field.lower()] = str(exc)
         status = 400 if errors else 200
         return (
-            render_template("index.html", form=raw, result=result, errors=errors),
+            render_template("index.html", form=raw, result=result, errors=errors,
+                            circuit_svg=circuit_svg),
             status,
         )
 
