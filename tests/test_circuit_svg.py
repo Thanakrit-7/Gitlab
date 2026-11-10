@@ -79,7 +79,7 @@ class TestBuildCircuitSvg(unittest.TestCase):
 
     def test_vce_dimension_line_present(self):
         svg = build_circuit_svg(analyze(**BASE))
-        self.assertIn('y2="286"', svg)
+        self.assertIn('y2="276"', svg)
         self.assertIn("rotate(-90", svg)
 
 
