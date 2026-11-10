@@ -21,4 +21,63 @@
   </div>
   <button type="submit">คำนวณ</button>
 </form>
+
+{% if result %}
+  {% set region_labels = {
+    "active": "Active — ทำงานในย่านขยายสัญญาณ",
+    "cutoff": "Cutoff — ทรานซิสเตอร์ไม่นำกระแส",
+    "saturation": "Saturation — ทรานซิสเตอร์อิ่มตัว"
+  } %}
+  <section class="result">
+    <h2>จุดทำงาน DC</h2>
+    <p class="region region-{{ result.exact.region }}">{{ region_labels[result.exact.region] }}</p>
+
+    <dl class="values">
+      <div><dt>VCE</dt><dd>{{ "%.3f"|format(result.exact.vce_v) }} V</dd></div>
+      <div><dt>IC</dt><dd>{{ "%.3f"|format(result.exact.ic_a * 1000) }} mA</dd></div>
+      <div><dt>IE</dt><dd>{{ "%.3f"|format(result.exact.ie_a * 1000) }} mA</dd></div>
+      <div><dt>IB</dt><dd>{{ "%.3f"|format(result.exact.ib_a * 1000000) }} µA</dd></div>
+      <div><dt>VB</dt><dd>{{ "%.3f"|format(result.exact.vb_v) }} V</dd></div>
+      <div><dt>VE</dt><dd>{{ "%.3f"|format(result.exact.ve_v) }} V</dd></div>
+      <div><dt>VC</dt><dd>{{ "%.3f"|format(result.exact.vc_v) }} V</dd></div>
+      <div><dt>VTH</dt><dd>{{ "%.3f"|format(result.exact.vth_v) }} V</dd></div>
+      <div><dt>RTH</dt><dd>{{ "%.1f"|format(result.exact.rth_ohm) }} Ω</dd></div>
+    </dl>
+
+    {% if result.comparison %}
+    <h3>เปรียบเทียบกับวิธีประมาณ (ไม่คิดกระแสเบส)</h3>
+    <table class="compare">
+      <thead>
+        <tr><th>ค่า</th><th>วิธีแม่นยำ</th><th>วิธีประมาณ</th><th>ต่างกัน</th><th>%ต่าง</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>IC (mA)</th>
+          <td>{{ "%.3f"|format(result.comparison.ic.exact * 1000) }}</td>
+          <td>{{ "%.3f"|format(result.comparison.ic.approximate * 1000) }}</td>
+          <td>{{ "%.3f"|format(result.comparison.ic.delta * 1000) }}</td>
+          <td>{{ "%.1f"|format(result.comparison.ic.percent) }}%</td>
+        </tr>
+        <tr>
+          <th>VCE (V)</th>
+          <td>{{ "%.3f"|format(result.comparison.vce.exact) }}</td>
+          <td>{{ "%.3f"|format(result.comparison.vce.approximate) }}</td>
+          <td>{{ "%.3f"|format(result.comparison.vce.delta) }}</td>
+          <td>{{ "%.1f"|format(result.comparison.vce.percent) }}%</td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if "cutoff" in result.exact.warnings %}
+      <p class="warning">ทรานซิสเตอร์อยู่ในย่าน Cutoff — ไม่มีกระแสไหลผ่าน</p>
+    {% endif %}
+    {% if "saturation" in result.exact.warnings %}
+      <p class="warning">ทรานซิสเตอร์อิ่มตัว (Saturation) — กระแสสูงสุดประมาณ {{ "%.3f"|format(result.exact.ic_sat_a * 1000) }} mA</p>
+    {% endif %}
+    {% if result.approx_near_saturation %}
+      <p class="note">หมายเหตุ: วิธีประมาณให้ VCE ต่ำกว่า VCE(sat) แล้ว แม้ผลแม่นยำยังอยู่ในย่าน Active</p>
+    {% endif %}
+  </section>
+{% endif %}
 {% endblock %}
