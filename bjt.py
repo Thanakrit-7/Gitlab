@@ -1,5 +1,7 @@
 import math
 
+VCE_SAT = 0.2
+
 
 class InputError(ValueError):
     """Invalid circuit input, carrying the form field it belongs to."""
@@ -48,6 +50,23 @@ def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
 
     vth_v = vcc * r2 / (r1 + r2)
     rth_ohm = r1 * r2 / (r1 + r2)
+
+    if vth_v <= vbe:
+        return {
+            "vth_v": vth_v,
+            "rth_ohm": rth_ohm,
+            "ib_a": 0.0,
+            "ic_a": 0.0,
+            "ie_a": 0.0,
+            "vb_v": vth_v,
+            "ve_v": 0.0,
+            "vc_v": vcc,
+            "vce_v": vcc,
+            "region": "cutoff",
+            "warnings": ["cutoff"],
+            "ic_sat_a": None,
+        }
+
     ib_a = (vth_v - vbe) / (rth_ohm + (1 + beta) * re)
     ic_a = beta * ib_a
     ie_a = (1 + beta) * ib_a
@@ -55,6 +74,14 @@ def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
     vb_v = ve_v + vbe
     vc_v = vcc - ic_a * rc
     vce_v = vc_v - ve_v
+
+    region = "active"
+    warnings = []
+    ic_sat_a = None
+    if vce_v < VCE_SAT:
+        region = "saturation"
+        warnings = ["saturation"]
+        ic_sat_a = (vcc - VCE_SAT) / (rc + re)
 
     return {
         "vth_v": vth_v,
@@ -66,7 +93,7 @@ def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
         "ve_v": ve_v,
         "vc_v": vc_v,
         "vce_v": vce_v,
-        "region": "active",
-        "warnings": [],
-        "ic_sat_a": None,
+        "region": region,
+        "warnings": warnings,
+        "ic_sat_a": ic_sat_a,
     }

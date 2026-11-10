@@ -70,5 +70,37 @@ class TestExactOperatingPoint(unittest.TestCase):
         self.assertGreater(result["ib_a"], 0)
 
 
+class TestRegion(unittest.TestCase):
+    def test_cutoff_when_vth_below_vbe(self):
+        result = exact_operating_point(
+            vcc=12.0, r1=47000.0, r2=1000.0, rc=4700.0, re=1000.0,
+            beta=100.0, vbe=0.7)
+        self.assertEqual(result["region"], "cutoff")
+        self.assertIn("cutoff", result["warnings"])
+        self.assertEqual(result["ib_a"], 0.0)
+        self.assertEqual(result["ic_a"], 0.0)
+        self.assertEqual(result["ie_a"], 0.0)
+        self.assertEqual(result["ve_v"], 0.0)
+        self.assertAlmostEqual(result["vb_v"], 0.25, places=9)
+        self.assertAlmostEqual(result["vc_v"], 12.0, places=9)
+        self.assertAlmostEqual(result["vce_v"], 12.0, places=9)
+        self.assertIsNone(result["ic_sat_a"])
+
+    def test_cutoff_boundary_when_vth_equals_vbe(self):
+        result = exact_operating_point(
+            vcc=12.0, r1=16142.857142857143, r2=1000.0, rc=4700.0,
+            re=1000.0, beta=100.0, vbe=0.7)
+        self.assertEqual(result["region"], "cutoff")
+        self.assertEqual(result["ib_a"], 0.0)
+
+    def test_saturation_when_vce_below_vce_sat(self):
+        result = exact_operating_point(**{**BASE, "rc": 47000.0})
+        self.assertEqual(result["region"], "saturation")
+        self.assertIn("saturation", result["warnings"])
+        self.assertLess(result["vce_v"], 0.2)
+        self.assertAlmostEqual(result["ic_sat_a"], 0.00024583333333333336,
+                               delta=1e-12)
+
+
 if __name__ == "__main__":
     unittest.main()
