@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 
-from bjt import analyze
+from bjt import InputError, analyze
 
 DEFAULTS = {
     "vcc": "12",
@@ -32,8 +32,17 @@ def create_app():
                 values[name] = float(raw[name])
             except ValueError:
                 errors[name] = "กรุณากรอกตัวเลข"
-        result = analyze(**values) if not errors else None
-        return render_template("index.html", form=raw, result=result, errors=errors)
+        result = None
+        if not errors:
+            try:
+                result = analyze(**values)
+            except InputError as exc:
+                errors[exc.field] = str(exc)
+        status = 400 if errors else 200
+        return (
+            render_template("index.html", form=raw, result=result, errors=errors),
+            status,
+        )
 
     return app
 
