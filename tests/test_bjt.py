@@ -1,6 +1,12 @@
 import unittest
 
-from bjt import InputError, exact_operating_point, validate_inputs
+from bjt import (
+    InputError,
+    approximate_operating_point,
+    compare,
+    exact_operating_point,
+    validate_inputs,
+)
 
 BASE = dict(vcc=12.0, r1=47000.0, r2=10000.0, rc=4700.0, re=1000.0,
             beta=100.0, vbe=0.7)
@@ -100,6 +106,37 @@ class TestRegion(unittest.TestCase):
         self.assertLess(result["vce_v"], 0.2)
         self.assertAlmostEqual(result["ic_sat_a"], 0.00024583333333333336,
                                delta=1e-12)
+
+
+class TestApproximate(unittest.TestCase):
+    def test_approximate_values(self):
+        result = approximate_operating_point(**BASE)
+        self.assertAlmostEqual(result["vb_v"], 2.1052631578947367, places=9)
+        self.assertAlmostEqual(result["ve_v"], 1.4052631578947368, places=9)
+        self.assertAlmostEqual(result["ie_a"], 0.0014052631578947367, delta=1e-12)
+        self.assertAlmostEqual(result["ic_a"], 0.0014052631578947367, delta=1e-12)
+        self.assertAlmostEqual(result["ib_a"], 1.3913496612819175e-05, delta=1e-12)
+        self.assertAlmostEqual(result["vc_v"], 5.395263157894737, places=9)
+        self.assertAlmostEqual(result["vce_v"], 3.99, places=9)
+
+    def test_compare_deltas(self):
+        exact = exact_operating_point(**BASE)
+        approx = approximate_operating_point(**BASE)
+        result = compare(exact, approx)
+        self.assertAlmostEqual(result["ic"]["delta"], 0.00011892944984912891,
+                               delta=1e-12)
+        self.assertAlmostEqual(result["ic"]["percent"], 9.245614035087712,
+                               places=9)
+        self.assertAlmostEqual(result["vce"]["delta"], -0.6650345270595794,
+                               delta=1e-9)
+        self.assertAlmostEqual(result["vce"]["percent"], -14.286350040880539,
+                               places=9)
+
+    def test_compare_avoids_division_by_zero(self):
+        zero = {"ic_a": 0.0, "vce_v": 0.0}
+        result = compare(zero, zero)
+        self.assertEqual(result["ic"]["percent"], 0.0)
+        self.assertEqual(result["vce"]["percent"], 0.0)
 
 
 if __name__ == "__main__":

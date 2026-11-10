@@ -97,3 +97,46 @@ def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
         "warnings": warnings,
         "ic_sat_a": ic_sat_a,
     }
+
+
+def approximate_operating_point(vcc, r1, r2, rc, re, beta, vbe):
+    validate_inputs(vcc, r1, r2, rc, re, beta, vbe)
+
+    vth_v = vcc * r2 / (r1 + r2)
+    rth_ohm = r1 * r2 / (r1 + r2)
+    vb_v = vth_v
+    ve_v = vb_v - vbe
+    ie_a = ve_v / re
+    ic_a = ie_a
+    ib_a = ie_a / (1 + beta)
+    vc_v = vcc - ic_a * rc
+    vce_v = vc_v - ve_v
+
+    return {
+        "vth_v": vth_v,
+        "rth_ohm": rth_ohm,
+        "ib_a": ib_a,
+        "ic_a": ic_a,
+        "ie_a": ie_a,
+        "vb_v": vb_v,
+        "ve_v": ve_v,
+        "vc_v": vc_v,
+        "vce_v": vce_v,
+    }
+
+
+def compare(exact, approximate):
+    def entry(exact_value, approximate_value):
+        delta = approximate_value - exact_value
+        percent = delta / exact_value * 100 if exact_value else 0.0
+        return {
+            "exact": exact_value,
+            "approximate": approximate_value,
+            "delta": delta,
+            "percent": percent,
+        }
+
+    return {
+        "ic": entry(exact["ic_a"], approximate["ic_a"]),
+        "vce": entry(exact["vce_v"], approximate["vce_v"]),
+    }
