@@ -2,6 +2,7 @@ import unittest
 
 from bjt import (
     InputError,
+    analyze,
     approximate_operating_point,
     compare,
     exact_operating_point,
@@ -137,6 +138,40 @@ class TestApproximate(unittest.TestCase):
         result = compare(zero, zero)
         self.assertEqual(result["ic"]["percent"], 0.0)
         self.assertEqual(result["vce"]["percent"], 0.0)
+
+
+class TestAnalyze(unittest.TestCase):
+    def test_active_returns_comparison(self):
+        result = analyze(**BASE)
+        self.assertEqual(result["inputs"]["vcc"], 12.0)
+        self.assertEqual(result["exact"]["region"], "active")
+        self.assertIsNotNone(result["approximate"])
+        self.assertIsNotNone(result["comparison"])
+
+    def test_cutoff_skips_comparison(self):
+        result = analyze(vcc=12.0, r1=47000.0, r2=1000.0, rc=4700.0,
+                         re=1000.0, beta=100.0, vbe=0.7)
+        self.assertEqual(result["exact"]["region"], "cutoff")
+        self.assertIsNone(result["approximate"])
+        self.assertIsNone(result["comparison"])
+
+    def test_saturation_skips_comparison(self):
+        result = analyze(**{**BASE, "rc": 47000.0})
+        self.assertEqual(result["exact"]["region"], "saturation")
+        self.assertIsNone(result["approximate"])
+        self.assertIsNone(result["comparison"])
+
+    def test_flags_approximation_near_saturation(self):
+        result = analyze(**{**BASE, "rc": 7800.0})
+        self.assertEqual(result["exact"]["region"], "active")
+        self.assertTrue(result["approx_near_saturation"])
+
+    def test_does_not_flag_comfortably_active_result(self):
+        self.assertFalse(analyze(**BASE)["approx_near_saturation"])
+
+    def test_invalid_input_raises(self):
+        with self.assertRaises(InputError):
+            analyze(**{**BASE, "beta": 0.5})
 
 
 if __name__ == "__main__":

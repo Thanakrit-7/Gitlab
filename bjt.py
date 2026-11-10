@@ -140,3 +140,31 @@ def compare(exact, approximate):
         "ic": entry(exact["ic_a"], approximate["ic_a"]),
         "vce": entry(exact["vce_v"], approximate["vce_v"]),
     }
+
+
+def analyze(vcc, r1, r2, rc, re, beta, vbe):
+    exact = exact_operating_point(vcc, r1, r2, rc, re, beta, vbe)
+    approximate = None
+    comparison = None
+    approx_near_saturation = False
+
+    if exact["region"] == "active":
+        approximate = approximate_operating_point(vcc, r1, r2, rc, re, beta, vbe)
+        comparison = compare(exact, approximate)
+        approx_near_saturation = approximate["vce_v"] < VCE_SAT
+
+    return {
+        "inputs": {
+            "vcc": vcc,
+            "r1": r1,
+            "r2": r2,
+            "rc": rc,
+            "re": re,
+            "beta": beta,
+            "vbe": vbe,
+        },
+        "exact": exact,
+        "approximate": approximate,
+        "comparison": comparison,
+        "approx_near_saturation": approx_near_saturation,
+    }
