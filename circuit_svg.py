@@ -51,7 +51,7 @@ def build_circuit_svg(result):
     zigzag_r1 = "120,48 111,62 129,76 111,90 129,104 111,118 129,132 120,146"
     zigzag_r2 = "120,246 111,258 129,270 111,282 129,294 111,306 129,318 120,330"
     zigzag_rc = "340,48 331,58 349,68 331,78 349,88 331,98 340,106"
-    zigzag_re = "340,282 331,292 349,302 331,312 349,322 331,332 340,340"
+    zigzag_re = "340,292 331,300 349,308 331,316 349,324 331,332 340,340"
 
     parts = [
         f'<svg class="circuit-svg" viewBox="0 0 480 400" '
@@ -59,6 +59,10 @@ def build_circuit_svg(result):
         f'aria-label="วงจร Voltage Divider Bias พร้อมค่าที่คำนวณได้">',
         f'<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" '
         f'markerWidth="7" markerHeight="7" orient="auto">'
+        f'<path d="M0,0 L10,5 L0,10 z" fill="{ACCENT}"/>'
+        f'</marker>'
+        f'<marker id="arrS" viewBox="0 0 10 10" refX="8" refY="5" '
+        f'markerWidth="6" markerHeight="6" orient="auto">'
         f'<path d="M0,0 L10,5 L0,10 z" fill="{ACCENT}"/>'
         f'</marker></defs>',
 
@@ -84,8 +88,8 @@ def build_circuit_svg(result):
 
         # Base wire from divider node to transistor base
         f'<circle cx="120" cy="200" r="3.5" fill="{WIRE}"/>',
-        f'<line x1="120" y1="200" x2="284" y2="200" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M120,200 L280,200" fill="none" stroke="{ACCENT}" '
+        f'<line x1="120" y1="200" x2="274" y2="200" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M120,200 L272,200" fill="none" stroke="{ACCENT}" '
         f'stroke-width="1.6" marker-end="url(#arr)"/>',
         f'<text x="130" y="168" font-size="11.5" fill="{MUTED}">VTH = {_esc(vth)}</text>',
         f'<text x="130" y="182" font-size="11.5" fill="{MUTED}">RTH = {_esc(rth)}</text>',
@@ -97,39 +101,39 @@ def build_circuit_svg(result):
         f'<line x1="340" y1="30" x2="340" y2="48" stroke="{WIRE}" stroke-width="2"/>',
         f'<polyline points="{zigzag_rc}" fill="none" stroke="{WIRE}" stroke-width="2" '
         f'stroke-linejoin="round"/>',
-        f'<line x1="340" y1="106" x2="340" y2="124" stroke="{WIRE}" stroke-width="2"/>',
+        f'<line x1="340" y1="106" x2="340" y2="114" stroke="{WIRE}" stroke-width="2"/>',
         f'<text x="356" y="72" font-size="11.5" fill="{INK}">'
         f'RC = {_esc(_ohms(inputs["rc"]))} Ω</text>',
 
-        # NPN transistor: enclosing circle + vertical bar + 45-degree leads
+        # NPN transistor: enclosing circle + bar offset left + 45-degree leads
         f'<circle cx="284" cy="200" r="26" fill="#fcfdfe" stroke="{WIRE}" '
         f'stroke-width="2"/>',
-        f'<line x1="284" y1="180" x2="284" y2="220" stroke="{WIRE}" stroke-width="5"/>',
-        f'<path d="M340,124 L284,180" fill="none" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M340,124 L288,176" fill="none" stroke="{ACCENT}" '
-        f'stroke-width="1.6" marker-end="url(#arr)"/>',
-        f'<path d="M284,220 L340,276" fill="none" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M284,220 L332,268" fill="none" stroke="{ACCENT}" '
-        f'stroke-width="1.6" marker-end="url(#arr)"/>',
+        f'<line x1="276" y1="180" x2="276" y2="220" stroke="{WIRE}" stroke-width="5"/>',
+        f'<path d="M340,114 L274,180" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M279.9,174.1 L275.6,178.4" fill="none" stroke="{ACCENT}" '
+        f'stroke-width="1" marker-end="url(#arrS)"/>',
+        f'<path d="M274,220 L340,286" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M275.6,221.6 L279.9,225.9" fill="none" stroke="{ACCENT}" '
+        f'stroke-width="1" marker-end="url(#arrS)"/>',
         f'<text x="318" y="192" font-size="12" font-weight="700" fill="{INK}">'
         f'Q1 NPN</text>',
         f'<text x="318" y="207" font-size="10.5" fill="{MUTED}">'
         f'(β = {_esc(beta)})</text>',
-        f'<circle cx="340" cy="124" r="3.5" fill="{WIRE}"/>',
-        f'<text x="332" y="114" font-size="11.5" fill="{INK}" text-anchor="end">'
+        f'<circle cx="340" cy="114" r="3.5" fill="{WIRE}"/>',
+        f'<text x="332" y="104" font-size="11.5" fill="{INK}" text-anchor="end">'
         f'VC = {_esc(vc)}</text>',
         f'<text x="252" y="146" font-size="11.5" fill="{ACCENT}" text-anchor="end">'
         f'IC = {_esc(ic)}</text>',
 
         # Emitter node + RE branch
-        f'<circle cx="340" cy="276" r="3.5" fill="{WIRE}"/>',
-        f'<text x="348" y="272" font-size="11.5" fill="{INK}">VE = {_esc(ve)}</text>',
-        f'<text x="348" y="258" font-size="11.5" fill="{ACCENT}">IE = {_esc(ie)}</text>',
-        f'<line x1="340" y1="276" x2="340" y2="282" stroke="{WIRE}" stroke-width="2"/>',
+        f'<circle cx="340" cy="286" r="3.5" fill="{WIRE}"/>',
+        f'<text x="348" y="282" font-size="11.5" fill="{INK}">VE = {_esc(ve)}</text>',
+        f'<text x="348" y="268" font-size="11.5" fill="{ACCENT}">IE = {_esc(ie)}</text>',
+        f'<line x1="340" y1="286" x2="340" y2="292" stroke="{WIRE}" stroke-width="2"/>',
         f'<polyline points="{zigzag_re}" fill="none" stroke="{WIRE}" stroke-width="2" '
         f'stroke-linejoin="round"/>',
         f'<line x1="340" y1="340" x2="340" y2="356" stroke="{WIRE}" stroke-width="2"/>',
-        f'<text x="356" y="316" font-size="11.5" fill="{INK}">'
+        f'<text x="356" y="328" font-size="11.5" fill="{INK}">'
         f'RE = {_esc(_ohms(inputs["re"]))} Ω</text>',
 
         # Beta / VBE annotations, clear of the emitter lead
@@ -139,9 +143,9 @@ def build_circuit_svg(result):
         f'text-anchor="end">VBE = {_esc(vbe)} V</text>',
 
         # VCE vertical dimension line spanning collector node to emitter node
-        f'<line x1="446" y1="124" x2="446" y2="276" stroke="{ACCENT}" stroke-width="1.6"/>',
-        f'<line x1="440" y1="124" x2="452" y2="124" stroke="{ACCENT}" stroke-width="1.6"/>',
-        f'<line x1="440" y1="276" x2="452" y2="276" stroke="{ACCENT}" stroke-width="1.6"/>',
+        f'<line x1="446" y1="114" x2="446" y2="286" stroke="{ACCENT}" stroke-width="1.6"/>',
+        f'<line x1="440" y1="114" x2="452" y2="114" stroke="{ACCENT}" stroke-width="1.6"/>',
+        f'<line x1="440" y1="286" x2="452" y2="286" stroke="{ACCENT}" stroke-width="1.6"/>',
         f'<text transform="rotate(-90 462 200)" x="462" y="200" font-size="11" '
         f'font-weight="700" fill="{ACCENT}" text-anchor="middle">'
         f'VCE = {_esc(vce)}</text>',
