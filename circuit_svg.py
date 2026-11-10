@@ -18,7 +18,7 @@ def _esc(text):
 
 
 def _ohms(value):
-    return f"{value:.0f}" if float(value).is_integer() else f"{value:g}"
+    return f"{value:.0f}" if float(value).is_integer() else f"{value:.10g}"
 
 
 def format_current(amps):
@@ -33,9 +33,9 @@ def build_circuit_svg(result):
     inputs = result["inputs"]
     exact = result["exact"]
 
-    vcc = f"{inputs['vcc']:.1f}"
-    beta = f"{inputs['beta']:.0f}"
-    vbe = f"{inputs['vbe']:.1f}"
+    vcc = f"{inputs['vcc']:.2f}"
+    beta = f"{inputs['beta']:.1f}"
+    vbe = f"{inputs['vbe']:.2f}"
 
     vth = f"{exact['vth_v']:.3f} V"
     rth = f"{exact['rth_ohm']:.1f} Ω"
@@ -84,8 +84,8 @@ def build_circuit_svg(result):
 
         # Base wire from divider node to transistor base
         f'<circle cx="120" cy="200" r="3.5" fill="{WIRE}"/>',
-        f'<line x1="120" y1="200" x2="288" y2="200" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M120,200 L286,200" fill="none" stroke="{ACCENT}" '
+        f'<line x1="120" y1="200" x2="266" y2="200" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M120,200 L276,200" fill="none" stroke="{ACCENT}" '
         f'stroke-width="1.6" marker-end="url(#arr)"/>',
         f'<text x="130" y="168" font-size="11.5" fill="{MUTED}">VTH = {_esc(vth)}</text>',
         f'<text x="130" y="182" font-size="11.5" fill="{MUTED}">RTH = {_esc(rth)}</text>',
@@ -101,21 +101,23 @@ def build_circuit_svg(result):
         f'<text x="356" y="72" font-size="11.5" fill="{INK}">'
         f'RC = {_esc(_ohms(inputs["rc"]))} Ω</text>',
 
-        # NPN transistor: bar + collector/emitter leads
+        # NPN transistor: enclosing circle + bar (β symbol inside)
         f'<circle cx="340" cy="138" r="3.5" fill="{WIRE}"/>',
         f'<text x="332" y="128" font-size="11.5" fill="{INK}" text-anchor="end">'
         f'VC = {_esc(vc)}</text>',
-        f'<path d="M340,138 L294,178" fill="none" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M340,138 L296,176" fill="none" stroke="{ACCENT}" '
+        f'<path d="M340,138 L306,182" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M340,138 L308,180" fill="none" stroke="{ACCENT}" '
         f'stroke-width="1.6" marker-end="url(#arr)"/>',
         f'<text x="252" y="146" font-size="11.5" fill="{ACCENT}" text-anchor="end">'
         f'IC = {_esc(ic)}</text>',
-        f'<line x1="290" y1="174" x2="290" y2="226" stroke="{WIRE}" stroke-width="5"/>',
-        f'<line x1="286" y1="200" x2="290" y2="200" stroke="{WIRE}" stroke-width="2"/>',
+        f'<circle cx="290" cy="200" r="24" fill="#fcfdfe" stroke="{WIRE}" '
+        f'stroke-width="2"/>',
+        f'<text x="290" y="207" font-size="19" font-weight="700" fill="{INK}" '
+        f'text-anchor="middle">β</text>',
 
         # Emitter lead with arrow out + RE branch
-        f'<path d="M290,222 L340,262" fill="none" stroke="{WIRE}" stroke-width="2"/>',
-        f'<path d="M290,222 L330,254" fill="none" stroke="{ACCENT}" '
+        f'<path d="M305,219 L340,262" fill="none" stroke="{WIRE}" stroke-width="2"/>',
+        f'<path d="M305,219 L330,251" fill="none" stroke="{ACCENT}" '
         f'stroke-width="1.6" marker-end="url(#arr)"/>',
         f'<circle cx="340" cy="262" r="3.5" fill="{WIRE}"/>',
         f'<text x="348" y="256" font-size="11.5" fill="{INK}">VE = {_esc(ve)}</text>',
@@ -127,17 +129,19 @@ def build_circuit_svg(result):
         f'<text x="356" y="308" font-size="11.5" fill="{INK}">'
         f'RE = {_esc(_ohms(inputs["re"]))} Ω</text>',
 
-        # Beta / VBE annotations under the transistor
-        f'<text x="290" y="248" font-size="13" font-weight="700" fill="{INK}" '
-        f'text-anchor="middle">β = {_esc(beta)}</text>',
-        f'<text x="290" y="264" font-size="10.5" fill="{MUTED}" '
-        f'text-anchor="middle">VBE = {_esc(vbe)} V</text>',
+        # Beta / VBE annotations, clear of the emitter lead
+        f'<text x="272" y="246" font-size="11.5" font-weight="700" fill="{INK}" '
+        f'text-anchor="end">β = {_esc(beta)}</text>',
+        f'<text x="272" y="262" font-size="10.5" fill="{MUTED}" '
+        f'text-anchor="end">VBE = {_esc(vbe)} V</text>',
 
-        # VCE emphasis on the right side
-        f'<rect x="352" y="186" width="118" height="24" rx="12" '
-        f'fill="#e3f4ec" stroke="{ACCENT}" stroke-width="1.2"/>',
-        f'<text x="411" y="202" font-size="12" font-weight="700" fill="{ACCENT}" '
-        f'text-anchor="middle">VCE = {_esc(vce)}</text>',
+        # VCE vertical dimension line spanning collector node to emitter node
+        f'<line x1="446" y1="138" x2="446" y2="262" stroke="{ACCENT}" stroke-width="1.6"/>',
+        f'<line x1="440" y1="138" x2="452" y2="138" stroke="{ACCENT}" stroke-width="1.6"/>',
+        f'<line x1="440" y1="262" x2="452" y2="262" stroke="{ACCENT}" stroke-width="1.6"/>',
+        f'<text transform="rotate(-90 462 200)" x="462" y="200" font-size="11" '
+        f'font-weight="700" fill="{ACCENT}" text-anchor="middle">'
+        f'VCE = {_esc(vce)}</text>',
 
         # Ground rail + symbol
         f'<line x1="40" y1="356" x2="440" y2="356" stroke="{WIRE}" stroke-width="2"/>',

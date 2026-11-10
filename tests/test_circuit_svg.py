@@ -1,7 +1,7 @@
 import unittest
 
 from bjt import analyze
-from circuit_svg import build_circuit_svg, format_current
+from circuit_svg import _ohms, build_circuit_svg, format_current
 
 BASE = dict(vcc=12.0, r1=47000.0, r2=10000.0, rc=4700.0, re=1000.0,
             beta=100.0, vbe=0.7)
@@ -60,6 +60,25 @@ class TestBuildCircuitSvg(unittest.TestCase):
         exact = analyze(**BASE)["exact"]
         self.assertIn(f"{exact['vce_v']:.3f}", svg)
         self.assertIn(format_current(exact["ic_a"]), svg)
+
+    def test_fractional_resistance_keeps_precision(self):
+        self.assertEqual(_ohms(47000), "47000")
+        self.assertEqual(_ohms(1234.5), "1234.5")
+
+    def test_fractional_beta_is_shown(self):
+        result = analyze(**{**BASE, "beta": 99.6})
+        svg = build_circuit_svg(result)
+        self.assertIn("β = 99.6", svg)
+
+    def test_beta_is_drawn_inside_a_circle(self):
+        svg = build_circuit_svg(analyze(**BASE))
+        self.assertIn("<circle", svg)
+        self.assertIn(">β<", svg)
+
+    def test_vce_dimension_line_present(self):
+        svg = build_circuit_svg(analyze(**BASE))
+        self.assertIn('y2="262"', svg)
+        self.assertIn("rotate(-90", svg)
 
 
 if __name__ == "__main__":

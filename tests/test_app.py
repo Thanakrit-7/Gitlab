@@ -123,6 +123,10 @@ class TestCircuitDiagram(unittest.TestCase):
             "re": "1000", "beta": "abc", "vbe": "0.7"})
         self.assertNotIn("circuit-svg", response.get_data(as_text=True))
 
+    def test_get_index_has_no_svg(self):
+        response = self.client.get("/")
+        self.assertNotIn("circuit-svg", response.get_data(as_text=True))
+
 
 if __name__ == "__main__":
     unittest.main()
