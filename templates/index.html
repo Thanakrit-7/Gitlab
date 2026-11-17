@@ -11,6 +11,11 @@
   <button type="submit">โหลดฟอร์ม</button>
 </form>
 
+<div class="circuit-wrap mode-diagram">
+  {{ mode_diagram|safe }}
+  <p class="diagram-caption">วงจรของโหมดที่เลือก: {{ mode_label }}</p>
+</div>
+
 <form method="post" action="/calculate" class="bias-form">
   <input type="hidden" name="mode" value="{{ mode }}">
   {% if errors["mode"] %}<p class="field-error mode-error">{{ errors["mode"] }}</p>{% endif %}

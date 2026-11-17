@@ -304,6 +304,30 @@ button:hover {
   font-weight: 600;
 }
 
+.mode-diagram {
+  margin: 0 0 18px;
+}
+
+.mode-diagram-svg {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  background: #fcfdfe;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.diagram-caption {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .page-validation .card {
   max-width: 1140px;
 }

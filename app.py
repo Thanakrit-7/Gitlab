@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 
 from bjt import InputError, analyze, emitter_bias, fixed_bias, single_bias_result
-from circuit_svg import build_circuit_svg
+from circuit_svg import build_circuit_svg, build_mode_diagram
 from validation_data import CRITERIA, CONDITIONS, NOTES, ROWS
 
 MODES = ("divider", "fixed", "emitter")
@@ -68,6 +68,7 @@ def create_app():
                 result=result,
                 errors=errors,
                 circuit_svg=circuit_svg,
+                mode_diagram=build_mode_diagram(mode),
             ),
             status,
         )
