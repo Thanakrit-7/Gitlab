@@ -26,6 +26,8 @@
   <button type="submit">คำนวณ</button>
 </form>
 
+<p class="page-link"><a href="{{ url_for('validation_page') }}">ดูตารางตรวจ Lab 03 (A1–A5) →</a></p>
+
 {% if result %}
   {% set region_labels = {
     "active": "Active — ทำงานในย่านขยายสัญญาณ",

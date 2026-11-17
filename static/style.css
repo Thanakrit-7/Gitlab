@@ -274,3 +274,191 @@ button:hover {
   padding: 10px;
 }
 
+.top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: -8px 0 22px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.top-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.top-nav a:hover {
+  text-decoration: underline;
+}
+
+.page-link {
+  margin: 14px 0 0;
+  font-size: 0.9rem;
+}
+
+.page-link a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.page-validation .card {
+  max-width: 1140px;
+}
+
+.validation h2 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+}
+
+.validation-meta {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.table-wrap {
+  margin: 16px 0 8px;
+  overflow-x: auto;
+}
+
+.validation-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.validation-table th,
+.validation-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.validation-table thead th {
+  background: #f2f9f7;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.validation-table tbody th {
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.validation-table tbody tr:nth-child(even) td,
+.validation-table tbody tr:nth-child(even) th {
+  background: #fbfcfd;
+}
+
+.validation-table .observed {
+  font-variant-numeric: tabular-nums;
+}
+
+.validation-table .method {
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-pass {
+  background: #e3f4ec;
+  color: #0b6e4f;
+}
+
+.status-fail {
+  background: #fde8e6;
+  color: var(--error);
+}
+
+.status-note {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.validation h3 {
+  margin: 22px 0 8px;
+  font-size: 1rem;
+}
+
+.validation-notes {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.validation-notes li {
+  margin-bottom: 4px;
+}
+
+@media (max-width: 900px) {
+  .validation-table {
+    min-width: 0;
+  }
+
+  .validation-table thead {
+    display: none;
+  }
+
+  .validation-table,
+  .validation-table tbody,
+  .validation-table tr,
+  .validation-table th,
+  .validation-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .validation-table tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .validation-table tbody tr:nth-child(even) td,
+  .validation-table tbody tr:nth-child(even) th {
+    background: transparent;
+  }
+
+  .validation-table tbody th,
+  .validation-table td {
+    padding: 5px 0;
+    border-bottom: 0;
+  }
+
+  .validation-table tbody th {
+    font-size: 1rem;
+    color: var(--accent);
+  }
+
+  .validation-table tbody th::before {
+    display: none;
+  }
+
+  .validation-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .validation-table .method {
+    white-space: normal;
+  }
+}
+

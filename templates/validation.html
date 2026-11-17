@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block body_class %}page-validation{% endblock %}
+
+{% block content %}
+<section class="validation">
+  <h2>ตารางตรวจ Lab 03 — A1–A5</h2>
+  <p class="validation-meta"><strong>เงื่อนไขร่วม:</strong> {{ conditions }}</p>
+  <p class="validation-meta"><strong>เกณฑ์ยอมรับ:</strong> {{ criteria }}</p>
+
+  <div class="table-wrap">
+    <table class="validation-table">
+      <thead>
+        <tr>
+          <th scope="col">กรณี</th>
+          <th scope="col">เลือกโหมดและกรอกค่า</th>
+          <th scope="col">คาดหมายก่อนรัน</th>
+          <th scope="col">เห็นจริง</th>
+          <th scope="col">วิธีตรวจ</th>
+          <th scope="col">สถานะ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <th scope="row" data-label="กรณี">{{ row.case }}</th>
+          <td data-label="เลือกโหมดและกรอกค่า">{{ row.inputs }}</td>
+          <td data-label="คาดหมายก่อนรัน">{{ row.expected }}</td>
+          <td class="observed" data-label="เห็นจริง">{{ row.observed }}</td>
+          <td class="method" data-label="วิธีตรวจ">{{ row.method }}</td>
+          <td class="status-cell" data-label="สถานะ">
+            <span class="status status-{{ 'pass' if row.status == 'PASS' else 'fail' }}">{{ row.status }}</span>
+            {% if row.status_note %}<span class="status-note">{{ row.status_note }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3>หมายเหตุ</h3>
+  <ul class="validation-notes">
+    {% for note in notes %}<li>{{ note }}</li>{% endfor %}
+  </ul>
+
+  <p class="note"><a href="{{ url_for('index') }}">← กลับไปหน้าคำนวณ</a></p>
+</section>
+{% endblock %}

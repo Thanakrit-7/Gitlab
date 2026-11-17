@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 
 from bjt import InputError, analyze, emitter_bias, fixed_bias, single_bias_result
 from circuit_svg import build_circuit_svg
+from validation_data import CRITERIA, CONDITIONS, NOTES, ROWS
 
 MODES = ("divider", "fixed", "emitter")
 
@@ -77,6 +78,16 @@ def create_app():
         if mode not in MODES:
             mode = "divider"
         return render_page(mode, dict(DEFAULTS), None, {}, None)
+
+    @app.get("/validation")
+    def validation_page():
+        return render_template(
+            "validation.html",
+            rows=ROWS,
+            conditions=CONDITIONS,
+            criteria=CRITERIA,
+            notes=NOTES,
+        )
 
     @app.post("/calculate")
     def calculate():
