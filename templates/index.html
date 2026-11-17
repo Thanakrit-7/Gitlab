@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
+<form method="get" action="/" class="mode-form">
+  <label for="mode">เลือกวงจร</label>
+  <select name="mode" id="mode">
+    {% for key, label in mode_labels.items() %}
+      <option value="{{ key }}"{% if key == mode %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">โหลดฟอร์ม</button>
+</form>
+
 <form method="post" action="/calculate" class="bias-form">
+  <input type="hidden" name="mode" value="{{ mode }}">
+  {% if errors["mode"] %}<p class="field-error mode-error">{{ errors["mode"] }}</p>{% endif %}
   <div class="grid">
-    {% for name, label, unit in [
-      ("vcc", "VCC", "V"),
-      ("r1", "R1", "Ω"),
-      ("r2", "R2", "Ω"),
-      ("rc", "RC", "Ω"),
-      ("re", "RE", "Ω"),
-      ("beta", "β", ""),
-      ("vbe", "VBE", "V")
-    ] %}
+    {% for name, label, unit in fields %}
     <label class="field">
       <span>{{ label }}{% if unit %} ({{ unit }}){% endif %}</span>
       <input type="number" step="any" name="{{ name }}" value="{{ form[name] }}">
@@ -30,6 +34,7 @@
   } %}
   <section class="result">
     <h2>จุดทำงาน DC</h2>
+    <p class="mode-tag">โหมด: {{ mode_label }}</p>
     <p class="region region-{{ result.exact.region }}">{{ region_labels[result.exact.region] }}</p>
 
     <dl class="values">

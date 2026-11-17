@@ -23,6 +23,25 @@ def _finite_number(value, field):
     return float(value)
 
 
+def _check_positive(field, value, limit, unit):
+    if value <= 0:
+        raise InputError(field, f"{field} ต้องมากกว่า 0")
+    if value > limit:
+        raise InputError(field, f"{field} ต้องไม่เกิน {limit:,.0f} {unit}")
+
+
+def _check_beta(beta):
+    if beta < 1:
+        raise InputError("beta", "beta ต้องมีค่าอย่างน้อย 1")
+    if beta > MAX_BETA:
+        raise InputError("beta", f"beta ต้องไม่เกิน {MAX_BETA:,.0f}")
+
+
+def _check_vbe(vbe, vcc):
+    if not (0 < vbe < vcc):
+        raise InputError("VBE", "VBE ต้องมากกว่า 0 และน้อยกว่า VCC")
+
+
 def validate_inputs(vcc, r1, r2, rc, re, beta, vbe):
     vcc = _finite_number(vcc, "VCC")
     r1 = _finite_number(r1, "R1")
@@ -32,34 +51,16 @@ def validate_inputs(vcc, r1, r2, rc, re, beta, vbe):
     beta = _finite_number(beta, "beta")
     vbe = _finite_number(vbe, "VBE")
 
-    checks = (
-        ("VCC", vcc, MAX_VOLTAGE, "V"),
-        ("R1", r1, MAX_RESISTANCE, "Ω"),
-        ("R2", r2, MAX_RESISTANCE, "Ω"),
-        ("RC", rc, MAX_RESISTANCE, "Ω"),
-        ("RE", re, MAX_RESISTANCE, "Ω"),
-    )
-    for field, value, limit, unit in checks:
-        if value <= 0:
-            raise InputError(field, f"{field} ต้องมากกว่า 0")
-        if value > limit:
-            raise InputError(field, f"{field} ต้องไม่เกิน {limit:,.0f} {unit}")
+    for field, value in (("VCC", vcc), ("R1", r1), ("R2", r2), ("RC", rc), ("RE", re)):
+        _check_positive(field, value,
+                        MAX_VOLTAGE if field == "VCC" else MAX_RESISTANCE,
+                        "V" if field == "VCC" else "Ω")
 
-    if beta < 1:
-        raise InputError("beta", "beta ต้องมีค่าอย่างน้อย 1")
-    if beta > MAX_BETA:
-        raise InputError("beta", f"beta ต้องไม่เกิน {MAX_BETA:,.0f}")
-
-    if not (0 < vbe < vcc):
-        raise InputError("VBE", "VBE ต้องมากกว่า 0 และน้อยกว่า VCC")
+    _check_beta(beta)
+    _check_vbe(vbe, vcc)
 
 
-def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
-    validate_inputs(vcc, r1, r2, rc, re, beta, vbe)
-
-    vth_v = vcc * r2 / (r1 + r2)
-    rth_ohm = r1 * r2 / (r1 + r2)
-
+def _operating_point(vth_v, rth_ohm, re_ohm, rc, beta, vbe, vcc):
     if vth_v <= vbe:
         return {
             "vth_v": vth_v,
@@ -76,10 +77,10 @@ def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
             "ic_sat_a": None,
         }
 
-    ib_a = (vth_v - vbe) / (rth_ohm + (1 + beta) * re)
+    ib_a = (vth_v - vbe) / (rth_ohm + (1 + beta) * re_ohm)
     ic_a = beta * ib_a
     ie_a = (1 + beta) * ib_a
-    ve_v = ie_a * re
+    ve_v = ie_a * re_ohm
     vb_v = ve_v + vbe
     vc_v = vcc - ic_a * rc
     vce_v = vc_v - ve_v
@@ -90,7 +91,7 @@ def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
     if vce_v < VCE_SAT:
         region = "saturation"
         warnings = ["saturation"]
-        ic_sat_a = (vcc - VCE_SAT) / (rc + re)
+        ic_sat_a = (vcc - VCE_SAT) / (rc + re_ohm)
 
     return {
         "vth_v": vth_v,
@@ -106,6 +107,49 @@ def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
         "warnings": warnings,
         "ic_sat_a": ic_sat_a,
     }
+
+
+def exact_operating_point(vcc, r1, r2, rc, re, beta, vbe):
+    validate_inputs(vcc, r1, r2, rc, re, beta, vbe)
+
+    vth_v = vcc * r2 / (r1 + r2)
+    rth_ohm = r1 * r2 / (r1 + r2)
+
+    return _operating_point(vth_v, rth_ohm, re, rc, beta, vbe, vcc)
+
+
+def fixed_bias(vcc, rb, rc, beta, vbe):
+    vcc = _finite_number(vcc, "VCC")
+    rb = _finite_number(rb, "RB")
+    rc = _finite_number(rc, "RC")
+    beta = _finite_number(beta, "beta")
+    vbe = _finite_number(vbe, "VBE")
+
+    _check_positive("VCC", vcc, MAX_VOLTAGE, "V")
+    _check_positive("RB", rb, MAX_RESISTANCE, "Ω")
+    _check_positive("RC", rc, MAX_RESISTANCE, "Ω")
+    _check_beta(beta)
+    _check_vbe(vbe, vcc)
+
+    return _operating_point(vcc, rb, 0.0, rc, beta, vbe, vcc)
+
+
+def emitter_bias(vcc, rb, rc, re, beta, vbe):
+    vcc = _finite_number(vcc, "VCC")
+    rb = _finite_number(rb, "RB")
+    rc = _finite_number(rc, "RC")
+    re = _finite_number(re, "RE")
+    beta = _finite_number(beta, "beta")
+    vbe = _finite_number(vbe, "VBE")
+
+    _check_positive("VCC", vcc, MAX_VOLTAGE, "V")
+    _check_positive("RB", rb, MAX_RESISTANCE, "Ω")
+    _check_positive("RC", rc, MAX_RESISTANCE, "Ω")
+    _check_positive("RE", re, MAX_RESISTANCE, "Ω")
+    _check_beta(beta)
+    _check_vbe(vbe, vcc)
+
+    return _operating_point(vcc, rb, re, rc, beta, vbe, vcc)
 
 
 def approximate_operating_point(vcc, r1, r2, rc, re, beta, vbe):
@@ -148,6 +192,17 @@ def compare(exact, approximate):
     return {
         "ic": entry(exact["ic_a"], approximate["ic_a"]),
         "vce": entry(exact["vce_v"], approximate["vce_v"]),
+    }
+
+
+def single_bias_result(inputs, exact):
+    """Wrap a single-mode exact result in the same shape as analyze()."""
+    return {
+        "inputs": inputs,
+        "exact": exact,
+        "approximate": None,
+        "comparison": None,
+        "approx_near_saturation": False,
     }
 
 

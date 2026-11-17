@@ -13,7 +13,11 @@ python .\electrical.py
 ## เว็บแอปคำนวณจุดทำงาน DC ของ BJT
 
 Flask web app สำหรับคำนวณจุดทำงาน DC ของทรานซิสเตอร์ BJT แบบ NPN ในวงจร
-Common-Emitter แบบ Voltage Divider Bias
+Common-Emitter เลือกวงจรได้สามแบบ
+
+- **Voltage Divider Bias** (Lab 2) — `R1`, `R2`, `RC`, `RE`
+- **Fixed Bias** — `RB` ต่อจาก `VCC` ไป Base, Emitter ต่อลงกราวด์ตรง (`VE = 0`)
+- **Emitter Bias** (แหล่งจ่ายเดียว) — `RB` ต่อจาก `VCC` ไป Base และ `RE` ต่อจาก Emitter ลงกราวด์
 
 ### ติดตั้ง
 
@@ -30,22 +34,47 @@ python -m venv .venv
 
 เปิด http://127.0.0.1:5000
 
-### อินพุต
+### เลือกโหมดและอินพุต
 
-`VCC` (V), `R1` (Ω), `R2` (Ω), `RC` (Ω), `RE` (Ω), `β`, `VBE` (V)
+เลือกโหมดจาก dropdown "เลือกวงจร" ด้านบนฟอร์ม แล้วกด "โหลดฟอร์ม" — หน้าจะโหลดใหม่และแสดง
+เฉพาะฟิลด์ของโหมดนั้น (ไม่มี JavaScript)
+
+- ทุกโหมด: `VCC` (V), `RC` (Ω), `β`, `VBE` (V)
+- Voltage Divider: `R1`, `R2` (Ω), `RE` (Ω)
+- Fixed: `RB` (Ω)
+- Emitter: `RB`, `RE` (Ω)
+
+### สมการที่ใช้ (Python)
+
+- Fixed: `IB = (VCC − VBE) / RB`, `VE = 0`, `VB = VBE`
+- Emitter: `IB = (VCC − VBE) / (RB + (β + 1)·RE)`
+- Divider: `IB = (VTH − VBE) / (RTH + (β + 1)·RE)`, `VTH = VCC·R2/(R1+R2)`, `RTH = R1·R2/(R1+R2)`
+- ร่วมกัน: `IC = β·IB`, `IE = (β + 1)·IB`, `VE = IE·RE`, `VB = VE + VBE`, `VC = VCC − IC·RC`, `VCE = VC − VE`
 
 ### ผลลัพธ์
 
 - จุดทำงาน DC: `VTH`, `RTH`, `IB`, `IC`, `IE`, `VB`, `VE`, `VC`, `VCE` พร้อมหน่วย
 - สถานะการทำงาน: Active / Cutoff / Saturation พร้อมคำเตือน
-- ตารางเปรียบเทียบวิธีแม่นยำ (Thevenin) กับวิธีประมาณ (ไม่คิดกระแสเบส)
-  พร้อมส่วนต่างและเปอร์เซ็นต์
+- (เฉพาะ Divider) ตารางเปรียบเทียบวิธีแม่นยำ (Thevenin) กับวิธีประมาณ (ไม่คิดกระแสเบส)
+- สลับโหมด URL: `http://127.0.0.1:5000/?mode=fixed` (หรือ `emitter` / `divider`)
 
-### ตัวอย่าง
+### ตัวอย่าง (Voltage Divider)
 
 `VCC=12, R1=47000, R2=10000, RC=4700, RE=1000, β=100, VBE=0.7`
 
 ได้ `IC = 1.286 mA`, `VCE = 4.655 V` และทำงานในย่าน Active
+
+### ตัวอย่าง (Fixed Bias)
+
+`VCC=12, RB=1000000, RC=2200, β=100, VBE=0.7` → `IC = 1.130 mA`, `VCE = 9.514 V`
+
+### ตัวอย่าง (Emitter Bias)
+
+`VCC=12, RB=1000000, RC=2200, RE=1000, β=100, VBE=0.7` → `IC = 1.026 mA`, `VCE = 8.705 V`
+
+### ตรวจ Lab 03 (A1–A5)
+
+ดู `docs/validation.md` — ตรวจผ่าน Browser (เลือกโหมด กรอก แล้วอ่านผล) ตามตารางของนักศึกษา
 
 ### เทสต์
 
