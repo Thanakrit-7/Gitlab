@@ -110,7 +110,6 @@ def create_app():
                     result = analyze(values["vcc"], values["r1"], values["r2"],
                                      values["rc"], values["re"], values["beta"],
                                      values["vbe"])
-                    circuit_svg = build_circuit_svg(result)
                 elif mode == "fixed":
                     exact = fixed_bias(values["vcc"], values["rb"], values["rc"],
                                        values["beta"], values["vbe"])
@@ -130,6 +129,7 @@ def create_app():
                          "beta": values["beta"], "vbe": values["vbe"]},
                         exact,
                     )
+                circuit_svg = build_circuit_svg(result)
             except InputError as exc:
                 errors[exc.field.lower()] = str(exc)
 

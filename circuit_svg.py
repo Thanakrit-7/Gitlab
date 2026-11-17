@@ -1,8 +1,9 @@
 """Render the BJT common-emitter bias circuit as an inline SVG.
 
 Pure functions only: no I/O, no globals. The SVG is built entirely from the
-dict produced by ``bjt.analyze`` so the picture can never disagree with the
-numbers shown in the result table.
+dict produced by ``bjt`` (``analyze`` for the divider, or ``single_bias_result``
+for fixed/emitter) so the picture can never disagree with the numbers shown in
+the result table. ``mode`` is inferred from the keys present in ``inputs``.
 """
 
 import html
@@ -11,6 +12,12 @@ ACCENT = "#0b6e4f"
 INK = "#1f2933"
 MUTED = "#5f6b7a"
 WIRE = "#1f2933"
+
+ARIA_LABELS = {
+    "divider": "วงจร Voltage Divider Bias พร้อมค่าที่คำนวณได้",
+    "fixed": "วงจร Fixed Bias พร้อมค่าที่คำนวณได้",
+    "emitter": "วงจร Emitter Bias (แหล่งจ่ายเดียว) พร้อมค่าที่คำนวณได้",
+}
 
 
 def _esc(text):
@@ -29,9 +36,17 @@ def format_current(amps):
     return f"{amps * 1000:.3f} mA"
 
 
-def build_circuit_svg(result):
+def build_circuit_svg(result, mode=None):
     inputs = result["inputs"]
     exact = result["exact"]
+
+    if mode is None:
+        mode = "divider" if "r1" in inputs else ("emitter" if "re" in inputs else "fixed")
+    if mode not in ARIA_LABELS:
+        raise ValueError(f"unknown mode: {mode}")
+
+    is_divider = mode == "divider"
+    is_fixed = mode == "fixed"
 
     vcc = f"{inputs['vcc']:.2f}"
     beta = f"{inputs['beta']:.1f}"
@@ -56,7 +71,7 @@ def build_circuit_svg(result):
     parts = [
         f'<svg class="circuit-svg" viewBox="0 0 480 400" '
         f'xmlns="http://www.w3.org/2000/svg" role="img" '
-        f'aria-label="วงจร Voltage Divider Bias พร้อมค่าที่คำนวณได้">',
+        f'aria-label="{ARIA_LABELS[mode]}">',
         f'<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" '
         f'markerWidth="7" markerHeight="7" orient="auto">'
         f'<path d="M0,0 L10,5 L0,10 z" fill="{ACCENT}"/>'
@@ -65,34 +80,55 @@ def build_circuit_svg(result):
         # VCC rail
         f'<line x1="40" y1="30" x2="440" y2="30" stroke="{WIRE}" stroke-width="2"/>',
         f'<text x="44" y="20" font-size="12" fill="{MUTED}">VCC = {_esc(vcc)} V</text>',
+    ]
 
+    if is_divider:
         # R1 branch
-        f'<line x1="120" y1="30" x2="120" y2="48" stroke="{WIRE}" stroke-width="2"/>',
-        f'<polyline points="{zigzag_r1}" fill="none" stroke="{WIRE}" stroke-width="2" '
-        f'stroke-linejoin="round"/>',
-        f'<line x1="120" y1="146" x2="120" y2="228" stroke="{WIRE}" stroke-width="2"/>',
-        f'<text x="100" y="100" font-size="11.5" fill="{INK}" text-anchor="end">'
-        f'R1 = {_esc(_ohms(inputs["r1"]))} Ω</text>',
+        parts += [
+            f'<line x1="120" y1="30" x2="120" y2="48" stroke="{WIRE}" stroke-width="2"/>',
+            f'<polyline points="{zigzag_r1}" fill="none" stroke="{WIRE}" stroke-width="2" '
+            f'stroke-linejoin="round"/>',
+            f'<line x1="120" y1="146" x2="120" y2="228" stroke="{WIRE}" stroke-width="2"/>',
+            f'<text x="100" y="100" font-size="11.5" fill="{INK}" text-anchor="end">'
+            f'R1 = {_esc(_ohms(inputs["r1"]))} Ω</text>',
 
-        # R2 branch to ground
-        f'<line x1="120" y1="228" x2="120" y2="246" stroke="{WIRE}" stroke-width="2"/>',
-        f'<polyline points="{zigzag_r2}" fill="none" stroke="{WIRE}" stroke-width="2" '
-        f'stroke-linejoin="round"/>',
-        f'<line x1="120" y1="330" x2="120" y2="356" stroke="{WIRE}" stroke-width="2"/>',
-        f'<text x="100" y="295" font-size="11.5" fill="{INK}" text-anchor="end">'
-        f'R2 = {_esc(_ohms(inputs["r2"]))} Ω</text>',
+            # R2 branch to ground
+            f'<line x1="120" y1="228" x2="120" y2="246" stroke="{WIRE}" stroke-width="2"/>',
+            f'<polyline points="{zigzag_r2}" fill="none" stroke="{WIRE}" stroke-width="2" '
+            f'stroke-linejoin="round"/>',
+            f'<line x1="120" y1="330" x2="120" y2="356" stroke="{WIRE}" stroke-width="2"/>',
+            f'<text x="100" y="295" font-size="11.5" fill="{INK}" text-anchor="end">'
+            f'R2 = {_esc(_ohms(inputs["r2"]))} Ω</text>',
+        ]
+    else:
+        # Single RB from VCC to base (Fixed / Emitter bias)
+        parts += [
+            f'<circle cx="120" cy="30" r="3.5" fill="{WIRE}"/>',
+            f'<line x1="120" y1="30" x2="120" y2="48" stroke="{WIRE}" stroke-width="2"/>',
+            f'<polyline points="{zigzag_r1}" fill="none" stroke="{WIRE}" stroke-width="2" '
+            f'stroke-linejoin="round"/>',
+            f'<line x1="120" y1="146" x2="120" y2="200" stroke="{WIRE}" stroke-width="2"/>',
+            f'<text x="100" y="100" font-size="11.5" fill="{INK}" text-anchor="end">'
+            f'RB = {_esc(_ohms(inputs["rb"]))} Ω</text>',
+        ]
 
-        # Base wire from divider node to transistor base
+    # Base wire from bias network node to transistor base
+    parts += [
         f'<circle cx="120" cy="200" r="3.5" fill="{WIRE}"/>',
         f'<line x1="120" y1="200" x2="284" y2="200" stroke="{WIRE}" stroke-width="2"/>',
         f'<path d="M120,200 L280,200" fill="none" stroke="{ACCENT}" '
         f'stroke-width="1.6" marker-end="url(#arr)"/>',
-        f'<text x="130" y="168" font-size="11.5" fill="{MUTED}">VTH = {_esc(vth)}</text>',
-        f'<text x="130" y="182" font-size="11.5" fill="{MUTED}">RTH = {_esc(rth)}</text>',
         f'<text x="130" y="216" font-size="11.5" fill="{INK}">VB = {_esc(vb)}</text>',
         f'<text x="130" y="230" font-size="11.5" fill="{ACCENT}">IB = {_esc(ib)}</text>',
+    ]
+    if is_divider:
+        parts += [
+            f'<text x="130" y="168" font-size="11.5" fill="{MUTED}">VTH = {_esc(vth)}</text>',
+            f'<text x="130" y="182" font-size="11.5" fill="{MUTED}">RTH = {_esc(rth)}</text>',
+        ]
 
-        # RC branch
+    # RC branch
+    parts += [
         f'<circle cx="340" cy="30" r="3.5" fill="{WIRE}"/>',
         f'<line x1="340" y1="30" x2="340" y2="48" stroke="{WIRE}" stroke-width="2"/>',
         f'<polyline points="{zigzag_rc}" fill="none" stroke="{WIRE}" stroke-width="2" '
@@ -121,17 +157,29 @@ def build_circuit_svg(result):
         f'<text x="252" y="146" font-size="11.5" fill="{ACCENT}" text-anchor="end">'
         f'IC = {_esc(ic)}</text>',
 
-        # Emitter node + RE branch
+        # Emitter node
         f'<circle cx="340" cy="276" r="3.5" fill="{WIRE}"/>',
         f'<text x="348" y="272" font-size="11.5" fill="{INK}">VE = {_esc(ve)}</text>',
         f'<text x="348" y="258" font-size="11.5" fill="{ACCENT}">IE = {_esc(ie)}</text>',
-        f'<line x1="340" y1="276" x2="340" y2="282" stroke="{WIRE}" stroke-width="2"/>',
-        f'<polyline points="{zigzag_re}" fill="none" stroke="{WIRE}" stroke-width="2" '
-        f'stroke-linejoin="round"/>',
-        f'<line x1="340" y1="340" x2="340" y2="356" stroke="{WIRE}" stroke-width="2"/>',
-        f'<text x="356" y="316" font-size="11.5" fill="{INK}">'
-        f'RE = {_esc(_ohms(inputs["re"]))} Ω</text>',
+    ]
 
+    if is_fixed:
+        # Emitter grounded directly — straight wire down to the rail
+        parts += [
+            f'<line x1="340" y1="276" x2="340" y2="356" stroke="{WIRE}" stroke-width="2"/>',
+        ]
+    else:
+        # RE branch to ground (Divider / Emitter)
+        parts += [
+            f'<line x1="340" y1="276" x2="340" y2="282" stroke="{WIRE}" stroke-width="2"/>',
+            f'<polyline points="{zigzag_re}" fill="none" stroke="{WIRE}" stroke-width="2" '
+            f'stroke-linejoin="round"/>',
+            f'<line x1="340" y1="340" x2="340" y2="356" stroke="{WIRE}" stroke-width="2"/>',
+            f'<text x="356" y="316" font-size="11.5" fill="{INK}">'
+            f'RE = {_esc(_ohms(inputs["re"]))} Ω</text>',
+        ]
+
+    parts += [
         # Beta / VBE annotations, clear of the emitter lead
         f'<text x="272" y="246" font-size="11.5" font-weight="700" fill="{INK}" '
         f'text-anchor="end">β = {_esc(beta)}</text>',
