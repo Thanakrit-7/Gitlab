@@ -8,17 +8,29 @@
       <option value="{{ key }}"{% if key == mode %} selected{% endif %}>{{ label }}</option>
     {% endfor %}
   </select>
+  {% if mode == "divider" %}
+  <label for="analysis">Analysis</label>
+  <select name="analysis" id="analysis">
+    {% for key, label in analysis_labels.items() %}
+      <option value="{{ key }}"{% if key == analysis %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
   <button type="submit">โหลดฟอร์ม</button>
 </form>
 
 <div class="circuit-wrap mode-diagram">
   {{ mode_diagram|safe }}
-  <p class="diagram-caption">วงจรของโหมดที่เลือก: {{ mode_label }}</p>
+  <p class="diagram-caption">วงจรของโหมดที่เลือก: {{ mode_label }}{% if mode == "divider" %} · {{ analysis_label }}{% endif %}</p>
 </div>
 
 <form method="post" action="/calculate" class="bias-form">
   <input type="hidden" name="mode" value="{{ mode }}">
+  <input type="hidden" name="analysis" value="{{ analysis }}">
   {% if errors["mode"] %}<p class="field-error mode-error">{{ errors["mode"] }}</p>{% endif %}
+  {% if errors["analysis"] %}<p class="field-error mode-error">{{ errors["analysis"] }}</p>{% endif %}
+  {% if errors["engine"] %}<p class="field-error mode-error">{{ errors["engine"] }}</p>{% endif %}
+
   <div class="grid">
     {% for name, label, unit in fields %}
     <label class="field">
@@ -28,7 +40,21 @@
     </label>
     {% endfor %}
   </div>
-  <button type="submit">คำนวณ</button>
+
+  {% if show_spice_fields %}
+  <h3 class="section-subhead">พารามิเตอร์วงจร CE / แหล่งสัญญาณ (สำหรับ ngspice)</h3>
+  <div class="grid">
+    {% for name, label, unit in spice_fields %}
+    <label class="field">
+      <span>{{ label }}{% if unit %} ({{ unit }}){% endif %}</span>
+      <input type="number" step="any" name="{{ name }}" value="{{ form[name] }}">
+      {% if errors[name] %}<span class="field-error">{{ errors[name] }}</span>{% endif %}
+    </label>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <button type="submit">{% if analysis == 'analytical' %}คำนวณ{% else %}Run Simulation{% endif %}</button>
 </form>
 
 <p class="page-link"><a href="{{ url_for('validation_page') }}">ดูตารางตรวจ Lab 03 (A1–A5) →</a></p>
@@ -40,8 +66,8 @@
     "saturation": "Saturation — ทรานซิสเตอร์อิ่มตัว"
   } %}
   <section class="result">
-    <h2>จุดทำงาน DC</h2>
-    <p class="mode-tag">โหมด: {{ mode_label }}</p>
+    <h2>จุดทำงาน DC (Analytical — Lab 3)</h2>
+    <p class="mode-tag">โหมด: {{ mode_label }} · ที่มา: สูตรวิเคราะห์ (Python/bjt.py)</p>
     <p class="region region-{{ result.exact.region }}">{{ region_labels[result.exact.region] }}</p>
 
     <dl class="values">
@@ -95,5 +121,48 @@
       {% include "_circuit.html" %}
     {% endif %}
   </section>
+{% endif %}
+
+{% if spice %}
+<section class="result spice-result">
+  <h2>ผล SPICE ({{ spice.engine }}) — {{ analysis_label }}</h2>
+  <p class="mode-tag">Engine: {{ spice.engine }}{% if spice.engine_version %} {{ spice.engine_version }}{% endif %} · Model: {{ spice.model|default('N/A') }} · Status: {{ spice.status }}</p>
+
+  {% if spice.status == "error" %}
+    <p class="warning">Simulation failed: {{ spice.error }}</p>
+  {% endif %}
+
+  {% if spice.status == "ok" and spice.analysis == "op" %}
+    <dl class="values">
+      <div><dt>VB</dt><dd>{{ "%.4f"|format(spice.operating_point.vb_v) }} V</dd></div>
+      <div><dt>VE</dt><dd>{{ "%.4f"|format(spice.operating_point.ve_v) }} V</dd></div>
+      <div><dt>VC</dt><dd>{{ "%.4f"|format(spice.operating_point.vc_v) }} V</dd></div>
+      <div><dt>VCE</dt><dd>{{ "%.4f"|format(spice.operating_point.vce_v) }} V</dd></div>
+      <div><dt>IC</dt><dd>{{ "%.4f"|format(spice.operating_point.ic_a * 1000) }} mA</dd></div>
+      <div><dt>IB</dt><dd>{{ "%.3f"|format(spice.operating_point.ib_a * 1e6) }} µA</dd></div>
+      <div><dt>IE</dt><dd>{{ "%.4f"|format(spice.operating_point.ie_a * 1000) }} mA</dd></div>
+    </dl>
+    <p class="note">ค่า DC นี้มาจาก ngspice .op จริง (ไม่ใช่สูตรประมาณใน bjt.py) — อาจต่างจาก Analytical ได้เพราะใช้ BJT model คนละสมมติฐาน</p>
+  {% endif %}
+
+  {% if spice.status == "ok" and spice.analysis == "ac" %}
+    <p class="note">Mid-band gain (ประมาณจุดกลาง sweep): {{ "%.2f"|format(spice.ac.midband_gain_db) }} dB ·
+      Low -3dB: {{ "%.2f"|format(spice.ac.cutoff_low_hz) ~ " Hz" if spice.ac.cutoff_low_hz else "not determined in sweep range" }} ·
+      High -3dB: {{ "%.2f"|format(spice.ac.cutoff_high_hz) ~ " Hz" if spice.ac.cutoff_high_hz else "not determined in sweep range" }}</p>
+    <div class="plot-wrap">{{ spice_plots.gain|safe }}</div>
+    <div class="plot-wrap">{{ spice_plots.phase|safe }}</div>
+  {% endif %}
+
+  {% if spice.status == "ok" and spice.analysis == "tran" %}
+    <p class="note">Vin pp: {{ "%.4f"|format(spice.tran.vin_pp_v * 1000) }} mV · Vout pp: {{ "%.4f"|format(spice.tran.vout_pp_v * 1000) }} mV ·
+      Gain |Vout/Vin|: {{ "%.3f"|format(spice.tran.gain_vv) if spice.tran.gain_vv is not none else "N/A" }} V/V ·
+      Phase: {{ "inverted (~180°)" if spice.tran.inverted else "in-phase" }}</p>
+    <div class="plot-wrap">{{ spice_plots.tran|safe }}</div>
+  {% endif %}
+
+  {% if spice.log_tail %}
+  <details class="log-details"><summary>ngspice log (tail)</summary><pre>{{ spice.log_tail }}</pre></details>
+  {% endif %}
+</section>
 {% endif %}
 {% endblock %}

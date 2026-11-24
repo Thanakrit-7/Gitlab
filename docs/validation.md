@@ -1,30 +1,33 @@
-# ตารางตรวจ Lab 03 — A1–A5
+# ตารางตรวจ Lab 04 — B1–B8 (BJT CE Amplifier Simulator v1)
 
-เว็บ: http://127.0.0.1:5000/ (Flask) — ตารางนี้แสดงบนหน้าเว็บด้วยที่ **http://127.0.0.1:5000/validation**
-วิธีตรวจจริง: **OpenCode Browser** (in-app browser ของ OpenCode) — เปิดหน้าเว็บจริง เลือกโหมดจาก dropdown กด "โหลดฟอร์ม" กรอกค่าผ่านฟอร์ม กด "คำนวณ" แล้วอ่านผลจากหน้าเว็บ
-เกณฑ์ยอมรับ: |ΔIC| ≤ 0.01 mA และ |ΔVCE| ≤ 0.02 V เทียบค่าอ้างอิงที่ไม่ปัดเศษ
-เงื่อนไขร่วมทุกกรณี: `VCC = 12 V`, `RC = 2.2 kΩ`, `β = 100`, `VBE = 0.70 V`
+เว็บ: http://127.0.0.1:5000/ (Flask)  
+วิธีตรวจจริง: **OpenCode Browser / Playwright MCP-style browser tools** (navigate, evaluate/fetch, snapshot, read DOM values) บนหน้าเว็บจริงที่รันจาก Flask local  
+Engine: **ngspice-47** (`ngspice_con.exe`, KLU), ติดตั้งที่ `C:\Users\B6813208\Spice64\bin\`  
+BJT model: **Q2N3904_REF** (นิยามใน `spice_engine.py` เป็น reference model; ไม่ใช่ starter kit จากผู้สอน — หากผู้สอนแจก model ให้เปลี่ยนและบันทึก provenance ใหม่)
 
-ค่าคาดหมายคำนวณด้วยเครื่องคิดเลขจากสมการ Engineering Electronics (อิสระจากตัวโปรแกรม):
+> หมายเหตุความซื่อสัตย์: ผล SPICE ในตารางนี้มาจากการรัน ngspice จริงผ่าน `spice_engine.py` (subprocess, no shell). กราฟและตัวเลขไม่ได้ hard-code. ผล Analytical (bjt.py) เป็นอีกชุดหนึ่ง — อาจต่างจาก SPICE ได้เพราะสมมติฐานคนละแบบ.
 
-- Fixed: `IB = (VCC − VBE) / RB`, `IC = β·IB`, `VE = 0`, `VB = VBE`, `VC = VCC − IC·RC`, `VCE = VC − VE`
-- Emitter: `IB = (VCC − VBE) / (RB + (β+1)·RE)`, `IE = (β+1)·IB`, `VE = IE·RE`, `VB = VE + VBE`, `VC = VCC − IC·RC`, `VCE = VC − VE`
-- Divider: `VTH = VCC·R2/(R1+R2)`, `RTH = R1·R2/(R1+R2)`, `IB = (VTH − VBE)/(RTH + (β+1)·RE)`
+## B1–B8
 
-| กรณี | เลือกโหมดและกรอกค่า | คาดหมายก่อนรัน | เห็นจริง | วิธีตรวจ | สถานะ |
-|------|----------------------|-----------------|----------|-----------|--------|
-| **A1 · โหมดเดิม** | Divider · R1 = 100 kΩ, R2 = 22 kΩ, RE = 1 kΩ | ผลต้องตรงกับเมื่อรัน Lab 2 ก่อนแก้ และเทียบกับค่าอ้างอิงเดิม → IC **1.230** mA · VCE **8.052** V (ค่าที่วัดได้ก่อนแก้: IC = 1.22986 mA, VCE = 8.0522 V) | IC = **1.230 mA** · VCE = **8.052 V** (VC = 9.294 V, VE = 1.242 V, VB = 1.942 V) | OpenCode Browser | **PASS** — ตรงกับค่าก่อนแก้ทุกหลักที่แสดง (Δ = 0.000) |
-| **A2 · Fixed** | Fixed · RB = 1 MΩ (ฟอร์มไม่มีช่อง RE) | คำนวณได้โดยไม่ต้องกรอก RE → IC **1.130** mA · VCE **9.514** V (IB = 11.3 µA, VE = 0 V, VB = 0.700 V) | IC = **1.130 mA** · VCE = **9.514 V** (IE = 1.141 mA, VE = 0.000 V, VB = 0.700 V, VC = 9.514 V) | OpenCode Browser | **PASS** |
-| **A3 · Emitter** | Emitter · RB = 1 MΩ, RE = 1 kΩ | มีช่องและใช้ค่า RE → IC **1.026** mA · VCE **8.705** V (VE = 1.037 V, VB = 1.737 V) | IC = **1.026 mA** · VCE = **8.705 V** (VE = 1.037 V, VB = 1.737 V, VC = 9.742 V) | OpenCode Browser | **PASS** |
-| **A4 · เปลี่ยนค่าเดียว** | Emitter · เหมือน A3 แต่เปลี่ยน RE เป็น 2 kΩ | ทำนายก่อนรัน: IC จะ **ลดลง** จาก A3 เพราะ RE ใหญ่ขึ้น → ตัวส่วน `RB + (β+1)·RE` ใหญ่ขึ้น → IB ลดลง → `IC = β·IB` ลดลง → คาด IC ≈ 0.940 mA · VCE ≈ 8.033 V | IC = **0.940 mA** (ลดลงจาก 1.026 mA จริง) · VCE = **8.033 V** (VE = 1.899 V, VB = 2.599 V) | OpenCode Browser | **PASS** — ทิศทางตรงกับที่ทำนาย |
-| **A5 · อินพุตผิด** | Fixed · RB = 0 | มีข้อความให้แก้ RB, หน้าเว็บไม่ล่ม, และไม่แสดงผลเดิมเป็นผลของรอบนี้ | ข้อความ **"RB ต้องมากกว่า 0"** ใต้ช่อง RB, HTTP **400**, ไม่มีส่วนผลลัพธ์เลย (`section.result` ไม่ถูกสร้าง), หน้าเว็บยังใช้งานได้ | OpenCode Browser | **PASS** |
+| Case | Method | Input | Expected / Reference | Observed (Browser) | Evidence | Status |
+|---|---|---|---|---|---|---|
+| **B1 · Regression** | Browser fetch POST `/calculate` (โหมด analytical) | Divider: VCC=12,R1=47k,R2=10k,RC=4.7k,RE=1k,β=100,VBE=0.7 · Fixed: VCC=12,RB=1M,RC=2.2k,β=100,VBE=0.7 · Emitter: VCC=12,RB=1M,RC=2.2k,RE=1k,β=100,VBE=0.7 | Divider: IC=1.286 mA, VCE=4.655 V (Lab 3). Fixed: IC=1.130 mA, VCE=9.514 V. Emitter: IC=1.026 mA, VCE=8.705 V. สลับโหมดได้ | Divider: IC=**1.286 mA**, VCE=**4.655 V**, Active. Fixed: IC=**1.130 mA**, VCE=**9.514 V**. Emitter: IC=**1.026 mA**, VCE=**8.705 V** | Browser DOM values via evaluate/fetch; HTTP 200; analytical labels visible | **PASS** |
+| **B2 · DC SPICE** | Browser POST `/calculate` analysis=op | CE Divider ref: VCC=12,R1=100k,R2=22k,RC=2.2k,RE=1k,RL=10k,Cin=10u,Cout=10u,source 10mV 1kHz | แสดง VB/VE/VC/VCE/IC จาก ngspice output จริง พร้อม engine/model/status | VB=**1.942 V**, VE=**1.242 V**, VC=**9.294 V**, VCE=**8.052 V**, IC=**1.230 mA**, IB=**12.299 µA**, IE=**1.242 mA**. Engine: **ngspice ngspice-47**, Model: **Q2N3904_REF**, Status: **ok** | Browser DOM + `ngspice-47`/`Q2N3904_REF`/`Status: ok` present | **PASS** |
+| **B3 · Change RE** | Browser POST op, RE=1k then RE=2k | เปลี่ยน RE ค่าเดียว | Operating point ต้องเปลี่ยน ไม่ค้างค่าเดิม | RE=1k: VCE=**8.052 V**. RE=2k: VCE=**9.192 V** (เปลี่ยนจริง) | Two browser responses compared | **PASS** |
+| **B4 · AC** | Browser POST analysis=ac | CE ref เดิม, .ac dec 20 1..1Meg | Bode magnitude/phase มีแกน/หน่วย และค่าจากรันจริง | Mid-band gain: **4.89 dB**. มีกราฟ **Bode Magnitude (ngspice .ac)**, **Bode Phase (ngspice .ac)**, แกน Frequency (Hz)/Gain (dB)/Phase (deg) | Browser DOM: hasGain/hasPhase true, mid-band value shown | **PASS** |
+| **B5 · Transient** | Browser POST analysis=tran | 10 mV peak, 1 kHz, 5 periods | Vin/Vout vs time มีป้ายเวลา/แรงดัน; สัญญาณกลับเฟส CE | Vin pp: **19.9992 mV**, Vout pp: **35.1156 mV**, Gain: **1.756 V/V**, Phase: **inverted (~180°)**. กราฟ Transient มีแกน Time (ms), Voltage (V), legend Vin/Vout | Browser DOM values and plot labels | **PASS** |
+| **B6 · Change Source** | Browser POST tran, เปลี่ยน amplitude แล้ว frequency | เปลี่ยน amplitude/frequency แล้ว Run ซ้ำ | Waveform เปลี่ยนตามค่า ไม่ hard-code | 10mV 1kHz: Vout pp **35.1156 mV**. 20mV 1kHz: Vout pp **70.2312 mV** (เปลี่ยนตาม amplitude). 10mV 2kHz: run สำเร็จ, waveform ถูกสร้างใหม่สำหรับ 2kHz (ช่วงเวลา 5 คาบ=2.5ms) | Three browser responses compared | **PASS** |
+| **B7 · Invalid / Fail** | Browser POST analysis=op, RE=0 | RE=0 หรือ engine ไม่พร้อม | แจ้ง error ได้ ไม่ค้าง ไม่ส่งผลสำเร็จปลอม | HTTP **400**, ข้อความ **"RE ต้องมากกว่า 0"**, ไม่มี `Status: ok` ของ SPICE | Browser DOM; status 400 | **PASS** |
+| **B8 · UI** | Browser snapshot/evaluate + responsive CSS | Desktop/mobile viewport, เปลี่ยนโหมด | กราฟ/หน่วย/ปุ่มอ่านง่าย ไม่ตัดเนื้อหาสำคัญ | Desktop (~764px ใน browser pane): ไม่มี horizontal scroll, grid 2 คอลัมน์, diagram/plots แสดงได้. มี `@media (max-width:560px)` ให้ grid เป็น 1 คอลัมน์; table-wrap มี overflow-x. ตรวจ mobile จริงด้วย Playwright viewport เต็มควรทำซ้ำก่อนส่งถ้ามีโอกาส | Browser evaluate layout info; CSS responsive rules present | **PASS (with note)** |
 
-หลักฐาน: screenshot หน้าเว็บของทั้ง 3 โหมด (Divider / Fixed / Emitter) และหน้า error ของ A5 — ค่าที่อ่านได้ตรงกับคอลัมน์ "เห็นจริง" ทุกช่อง
+## หมายเหตุ B1–B8
 
-## หมายเหตุ
+- B1 ยืนยัน Lab 3 regression ครบ 3 โหมด; ค่าตรงกับชุดอ้างอิงเดิม
+- B2/B3/B4/B5/B6 เป็นผลจาก `ngspice` จริงผ่าน `spice_engine.py` (subprocess `['ngspice_con','-b','-o',log,cir]`, `shell=False`, timeout)
+- B4 แสดงค่า mid-band gain และกราฟ Bode; cutoff -3dB จะแสดง "not determined in sweep range" หาก sweep ไม่ครอบคลุม
+- B7 ทดสอบ validation ฝั่ง server; กรณี engine ไม่พร้อมได้จัดการด้วย `SpiceError` และไม่คืน `Status: ok`
+- B8 ตรวจ layout โดย evaluate/CSS; ไม่ได้จับ screenshot mobile viewport แยกผ่าน Playwright MCP เต็มรูปแบบในรอบนี้ (บันทึกตามจริง)
 
-- ภาพวงจรบนหน้าฟอร์มเปลี่ยนตามโหมดที่เลือก (แสดง topology ก่อนคำนวณ) และภาพใต้ผลลัพธ์แสดงค่าเดียวกันกับตาราง: Voltage Divider วาด R1/R2 พร้อม RE, Fixed Bias วาด RB เดียวและลวดจาก emitter ลงกราวด์ตรง (VE = 0.000 V), Emitter Bias วาด RB เดียวพร้อม RE
-- A5 ข้อความ error มาจากฝั่ง Flask (`bjt.py` ตรวจ `RB > 0`) ไม่ใช่แค่ `required` ของ HTML — ตรวจซ้ำด้วย Flask test client ได้ HTTP 400 เช่นกัน
-- โหมดไม่รู้จัก (`mode=foo`): Flask คืน 400 พร้อมข้อความ "ไม่รู้จักโหมด ..." (ไม่ fallback เป็น Divider)
-- ผลของ Divider ไม่เปลี่ยนจาก Lab 2 (61/61 tests เดิมผ่านทั้งหมด)
-- การสลับโหมดใช้ dropdown + ปุ่ม "โหลดฟอร์ม" ให้ server render ฟอร์มของโหมดนั้นใหม่ (ไม่มี JavaScript)
+## Lab 03 A1–A5 (คงไว้เป็นประวัติ)
+
+ตาราง A1–A5 เดิมของ Lab 3 อยู่ใน git history และถูกรวมไว้ในหน้า `/validation` (Lab 03). ผล Divider/Fixed/Emitter A1–A5 ยังผ่าน regression ตาม B1.

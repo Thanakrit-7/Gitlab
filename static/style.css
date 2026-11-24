@@ -429,6 +429,60 @@ button:hover {
   margin-bottom: 4px;
 }
 
+.section-subhead {
+  margin: 20px 0 10px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.spice-result .mode-tag {
+  background: #e7f3ef;
+  color: #13645c;
+}
+
+.plot-wrap {
+  margin: 14px 0;
+  overflow-x: auto;
+}
+
+.plot-svg {
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fcfdfe;
+}
+
+.plot-empty {
+  padding: 20px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+}
+
+.log-details {
+  margin-top: 14px;
+}
+
+.log-details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.log-details pre {
+  margin: 8px 0 0;
+  padding: 10px;
+  background: #f5f7fa;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
   .validation-table {
     min-width: 0;
