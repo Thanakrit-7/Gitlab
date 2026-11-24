@@ -582,3 +582,14 @@ button:hover {
   }
 }
 
+
+.lab4-validation {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.lab4-validation h2 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+}

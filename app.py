@@ -4,7 +4,10 @@ from bjt import InputError, analyze, emitter_bias, fixed_bias, single_bias_resul
 from circuit_svg import build_circuit_svg, build_mode_diagram
 from plot_svg import bode_gain_db, bode_phase, transient_plot
 from spice_engine import DEFAULT_CIRCUIT, SpiceError, run_simulation
-from validation_data import CRITERIA, CONDITIONS, NOTES, ROWS
+from validation_data import (
+    CRITERIA, CONDITIONS, NOTES, ROWS,
+    LAB4_CONDITIONS, LAB4_CRITERIA, LAB4_NOTES, LAB4_ROWS,
+)
 
 MODES = ("divider", "fixed", "emitter")
 ANALYSES = ("analytical", "op", "ac", "tran")
@@ -120,6 +123,10 @@ def create_app():
                 validation_conditions=CONDITIONS,
                 validation_criteria=CRITERIA,
                 validation_notes=NOTES,
+                lab4_rows=LAB4_ROWS,
+                lab4_conditions=LAB4_CONDITIONS,
+                lab4_criteria=LAB4_CRITERIA,
+                lab4_notes=LAB4_NOTES,
             ),
             status,
         )
