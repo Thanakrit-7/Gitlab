@@ -328,8 +328,50 @@ button:hover {
   text-align: center;
 }
 
+.page-landscape .card,
 .page-validation .card {
-  max-width: 1140px;
+  max-width: 1320px;
+}
+
+.page-section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+#calculator.page-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  body {
+    background: #fff;
+    padding: 0;
+  }
+  .page-landscape .card,
+  .page-validation .card {
+    max-width: none;
+    width: 100%;
+    box-shadow: none;
+    border: 0;
+    padding: 0;
+  }
+  .top-nav, .mode-form button, .bias-form button, .page-link {
+    display: none !important;
+  }
+  .plot-svg, .mode-diagram-svg, .circuit-svg {
+    max-width: 100%;
+  }
+  .page-section {
+    break-inside: avoid;
+  }
 }
 
 .validation h2 {

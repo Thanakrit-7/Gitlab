@@ -6,13 +6,13 @@
   <title>คำนวณจุดทำงาน DC ของ BJT</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="page-landscape {% block body_class %}{% endblock %}">
   <main class="card">
     <h1>คำนวณจุดทำงาน DC ของ BJT</h1>
-    <p class="subtitle">วงจรขยาย Common-Emitter — Voltage Divider / Fixed / Emitter Bias</p>
+    <p class="subtitle">วงจรขยาย Common-Emitter — Voltage Divider / Fixed / Emitter Bias · หน้ารวมคำนวณและตารางตรวจ (กระดาษแนวนอน)</p>
     <nav class="top-nav">
-      <a href="{{ url_for('index') }}">หน้าคำนวณ</a>
-      <a href="{{ url_for('validation_page') }}">ตารางตรวจ A1–A5</a>
+      <a href="#calculator">หน้าคำนวณ</a>
+      <a href="#validation">ตารางตรวจ A1–A5</a>
     </nav>
     {% block content %}{% endblock %}
   </main>

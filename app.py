@@ -116,6 +116,10 @@ def create_app():
                 errors=errors,
                 circuit_svg=circuit_svg,
                 mode_diagram=build_mode_diagram(mode),
+                validation_rows=ROWS,
+                validation_conditions=CONDITIONS,
+                validation_criteria=CRITERIA,
+                validation_notes=NOTES,
             ),
             status,
         )
@@ -134,13 +138,9 @@ def create_app():
 
     @app.get("/validation")
     def validation_page():
-        return render_template(
-            "validation.html",
-            rows=ROWS,
-            conditions=CONDITIONS,
-            criteria=CRITERIA,
-            notes=NOTES,
-        )
+        # Keep old route working; redirect to the combined single-page layout.
+        from flask import redirect, url_for
+        return redirect(url_for("index") + "#validation")
 
     @app.post("/calculate")
     def calculate():

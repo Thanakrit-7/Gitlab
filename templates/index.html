@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<section id="calculator" class="page-section">
 <form method="get" action="/" class="mode-form">
   <label for="mode">เลือกวงจร</label>
   <select name="mode" id="mode">
@@ -57,7 +58,7 @@
   <button type="submit">{% if analysis == 'analytical' %}คำนวณ{% else %}Run Simulation{% endif %}</button>
 </form>
 
-<p class="page-link"><a href="{{ url_for('validation_page') }}">ดูตารางตรวจ Lab 03 (A1–A5) →</a></p>
+<p class="page-link"><a href="#validation">ลงไปตารางตรวจ Lab 03 (A1–A5) ↓</a></p>
 
 {% if result %}
   {% set region_labels = {
@@ -165,4 +166,46 @@
   {% endif %}
 </section>
 {% endif %}
+</section>
+
+<section id="validation" class="page-section validation">
+  <h2>ตารางตรวจ Lab 03 — A1–A5</h2>
+  <p class="validation-meta"><strong>เงื่อนไขร่วม:</strong> {{ validation_conditions }}</p>
+  <p class="validation-meta"><strong>เกณฑ์ยอมรับ:</strong> {{ validation_criteria }}</p>
+
+  <div class="table-wrap">
+    <table class="validation-table">
+      <thead>
+        <tr>
+          <th scope="col">กรณี</th>
+          <th scope="col">เลือกโหมดและกรอกค่า</th>
+          <th scope="col">คาดหมายก่อนรัน</th>
+          <th scope="col">เห็นจริง</th>
+          <th scope="col">วิธีตรวจ</th>
+          <th scope="col">สถานะ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in validation_rows %}
+        <tr>
+          <th scope="row" data-label="กรณี">{{ row.case }}</th>
+          <td data-label="เลือกโหมดและกรอกค่า">{{ row.inputs }}</td>
+          <td data-label="คาดหมายก่อนรัน">{{ row.expected }}</td>
+          <td class="observed" data-label="เห็นจริง">{{ row.observed }}</td>
+          <td class="method" data-label="วิธีตรวจ">{{ row.method }}</td>
+          <td class="status-cell" data-label="สถานะ">
+            <span class="status status-{{ 'pass' if row.status == 'PASS' else 'fail' }}">{{ row.status }}</span>
+            {% if row.status_note %}<span class="status-note">{{ row.status_note }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3>หมายเหตุ</h3>
+  <ul class="validation-notes">
+    {% for note in validation_notes %}<li>{{ note }}</li>{% endfor %}
+  </ul>
+</section>
 {% endblock %}
